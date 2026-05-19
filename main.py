@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 import models, schemas
 from database import engine, SessionLocal
+from fastapi.middleware.cors import CORSMiddleware
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -65,3 +66,12 @@ def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db))
         "usuario_id": db_usuario.usuario_id, 
         "nombre": db_usuario.nombre
     }
+
+# Configuración de CORS para permitir que el frontend se comunique con el backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite peticiones de cualquier origen (ideal para desarrollo local)
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados
+)
