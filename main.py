@@ -1,14 +1,22 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 import models, schemas
 from database import engine, SessionLocal
 
-# Crea las tablas si no existen
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def obtener_password_hash(password):
+    return pwd_context.hash(password)
+
+# NUEVA FUNCIÓN: Verifica si la contraseña de texto coincide con el hash guardado
+def verificar_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# Esta función abre una "puerta" a la base de datos por cada petición y la cierra al terminar
 def get_db():
     db = SessionLocal()
     try:
@@ -16,31 +24,44 @@ def get_db():
     finally:
         db.close()
 
-# --- AQUÍ EMPIEZAN TUS RUTAS (ENDPOINTS) ---
-
 @app.get("/")
 def leer_raiz():
-    return {"mensaje": "¡El backend de IrMex está vivo!"}
+    return {"mensaje": "¡El backend de IrMex está vivo y seguro!"}
 
 @app.post("/api/registro")
 def registrar_usuario(usuario: schemas.UsuarioCrear, db: Session = Depends(get_db)):
-    # 1. Verificamos si el correo ya existe en la base de datos
     db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
     if db_usuario:
         raise HTTPException(status_code=400, detail="Este correo ya está registrado")
     
-    # 2. Preparamos al nuevo usuario para guardarlo
-    # NOTA: Por ahora guardaremos el password tal cual, pero pronto le agregaremos encriptación real
+    hashed_password = obtener_password_hash(usuario.password)
+    
     nuevo_usuario = models.Usuario(
         nombre=usuario.nombre,
         correo=usuario.correo,
-        password_hash=usuario.password, 
+        password_hash=hashed_password,
         fecha_nacimiento=usuario.fecha_nacimiento
     )
     
-    # 3. Lo guardamos en SQLite
     db.add(nuevo_usuario)
     db.commit()
-    db.refresh(nuevo_usuario) # Actualizamos para obtener el ID que le asignó la base de datos
+    db.refresh(nuevo_usuario)
     
-    return {"mensaje": "Usuario creado con éxito", "usuario_id": nuevo_usuario.usuario_id}
+    return {"mensaje": "Usuario creado con éxito de forma segura", "usuario_id": nuevo_usuario.usuario_id}
+
+# NUEVA RUTA: Inicio de sesión
+@app.post("/api/login")
+def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db)):
+    # 1. Buscar al usuario por correo
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
+    
+    # 2. Si no existe o la contraseña no coincide, rechazamos el acceso
+    if not db_usuario or not verificar_password(usuario.password, db_usuario.password_hash):
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+    
+    # 3. Si todo está bien, damos la bienvenida
+    return {
+        "mensaje": "Inicio de sesión exitoso", 
+        "usuario_id": db_usuario.usuario_id, 
+        "nombre": db_usuario.nombre
+    }

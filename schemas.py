@@ -8,3 +8,8 @@ class UsuarioCrear(BaseModel):
     correo: str
     password: str
     fecha_nacimiento: Optional[date] = None
+
+# Nueva estructura para el inicio de sesión
+class UsuarioLogin(BaseModel):
+    correo: str
+    password: str    
