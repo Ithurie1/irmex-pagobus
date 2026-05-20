@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Módulo CRUD Tarjetas</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos específicos para la pantalla CRUD (Adaptados para pantalla de computadora/tablet) */
+        .crud-container {
+            background-color: var(--blanco);
+            width: 90%;
+            max-width: 1000px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .crud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--fondo-pantalla);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .crud-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+        }
+
+        /* Tabla del CRUD */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: var(--azul-oscuro);
+            color: var(--blanco);
+        }
+
+        .btn-modificar {
+            background-color: #f1c40f;
+            color: #000;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-eliminar {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body style="height: auto; padding: 40px 0;">
+
+    <div class="crud-container">
+        <div class="crud-header">
+            <h2>Módulo: Gestión de Tarjetas (CRUD)</h2>
+            <a href="dashboard.html" class="btn-principal"
+                style="width: auto; padding: 10px 20px; text-decoration: none;">Volver al Menú</a>
+        </div>
+
+        <div class="crud-grid">
+            <div style="background-color: var(--fondo-pantalla); padding: 20px; border-radius: 10px;">
+                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Registrar Tarjeta (Create)</h3>
+                <form>
+                    <div class="form-group">
+                        <label>Número de Tarjeta:</label>
+                        <input type="text" placeholder="Ej. 1234 5678 9012" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Saldo Inicial:</label>
+                        <input type="number" placeholder="$ 0.00" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Estatus:</label>
+                        <input type="text" placeholder="Activa / Inactiva" readonly>
+                    </div>
+                    <button type="button" class="btn-principal">Agregar Tarjeta</button>
+                </form>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Directorio de Tarjetas</h3>
+                <input type="text" class="search-bar" placeholder="🔍 Buscar por número de tarjeta..." readonly>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No. Tarjeta</th>
+                            <th>Saldo</th>
+                            <th>Estatus</th>
+                            <th>Acciones (Update / Delete)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>9876 5432 1098</td>
+                            <td>$ 150.00</td>
+                            <td style="color: green; font-weight: bold;">Activa</td>
+                            <td>
+                                <button type="button" class="btn-modificar">Modificar</button>
+                                <button type="button" class="btn-eliminar">Eliminar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>1111 2222 3333</td>
+                            <td>$ 15.50</td>
+                            <td style="color: red; font-weight: bold;">Bloqueada</td>
+                            <td>
+                                <button type="button" class="btn-modificar">Modificar</button>
+                                <button type="button" class="btn-eliminar">Eliminar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

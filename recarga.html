@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Recarga de Saldo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .grid-montos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-monto {
+            background-color: var(--fondo-pantalla);
+            border: 2px solid var(--azul-claro);
+            color: var(--azul-oscuro);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-monto:hover,
+        .btn-monto:focus {
+            background-color: var(--azul-claro);
+            color: var(--blanco);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">←
+                Volver al Inicio</a>
+        </div>
+
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Recargar Saldo</h2>
+        <p style="color: var(--gris-texto); font-size: 14px; margin-bottom: 15px;">Selecciona el monto a recargar a tu
+            tarjeta que termina en <strong>1098</strong></p>
+
+        <div class="grid-montos">
+            <button class="btn-monto" type="button">$ 20.00</button>
+            <button class="btn-monto" type="button">$ 50.00</button>
+            <button class="btn-monto" type="button">$ 100.00</button>
+            <button class="btn-monto" type="button">$ 200.00</button>
+        </div>
+
+        <div class="form-group">
+            <label>Método de Pago</label>
+            <select style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px;">
+                <option>💳 Tarjeta de Crédito/Débito</option>
+                <option>🏪 Pago en OXXO (Efectivo)</option>
+                <option>📱 Transferencia SPEI</option>
+            </select>
+        </div>
+
+        <button type="button" class="btn-principal" style="margin-top: 20px;">Proceder al Pago</button>
+    </div>
+
+</body>
+
+</html>

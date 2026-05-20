@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Inicio</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos extra específicos para el dashboard */
+        .header-dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .saldo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .saldo-cantidad {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--azul-oscuro);
+        }
+
+        .menu-btn {
+            background-color: var(--blanco);
+            border: 2px solid var(--azul-claro);
+            color: var(--azul-oscuro);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .menu-btn:hover {
+            background-color: var(--azul-claro);
+            color: var(--blanco);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div class="header-dashboard">
+            <img src="logoitl.png" alt="Logo IrMex" style="width: 50px; height: 50px; border-radius: 50%;">
+            <div
+                style="width: 40px; height: 40px; background-color: #ccc; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+                👤
+            </div>
+        </div>
+
+        <div class="saldo-container">
+            <p style="color: var(--gris-texto); font-weight: bold;">SALDO DISPONIBLE</p>
+            <p class="saldo-cantidad">$00.00</p>
+        </div>
+
+        <div style="width: 100%;">
+            <a href="historial.html" class="menu-btn">Historial de Viajes</a>
+            <a href="recarga.html" class="menu-btn">Recarga de Saldo</a>
+            <a href="crud_tarjetas.html" class="menu-btn">Gestión de tarjetas (CRUD)</a>
+            <a href="perfil.html" class="menu-btn">Mi Perfil </a>
+        </div>
+
+        <a href="index.html" style="margin-top: 30px; color: #e74c3c; text-decoration: none; font-weight: bold;">Cerrar
+            Sesión</a>
+
+        <a class="enlace-secundario" style="margin-top: auto; padding-top: 20px;">¿Necesitas ayuda? Contactanos</a>
+    </div>
+
+</body>
+
+</html>
