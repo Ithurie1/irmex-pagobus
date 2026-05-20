@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IrMex - Ingreso</title>
+    <title>IrMex - Registro</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -16,53 +16,69 @@
                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
         </div>
 
-        <h1>¿Ya estás registrado? Ingresá</h1>
+        <h1>Creá una cuenta nueva</h1>
 
-        <form id="loginForm" style="width: 100%;">
+        <form id="registroForm" style="width: 100%;">
+            <div class="form-group">
+                <label for="nombre">Escribí tu nombre</label>
+                <input type="text" id="nombre" required>
+            </div>
+
             <div class="form-group">
                 <label for="correo">Escribí tu correo electrónico</label>
-                <input type="email" id="correo" placeholder="hola@ejemplo.com" required>
+                <input type="email" id="correo" required>
             </div>
 
             <div class="form-group">
                 <label for="password">Escribí tu contraseña</label>
-                <input type="password" id="password" placeholder="******" required>
+                <input type="password" id="password" required>
             </div>
 
-            <button type="submit" class="btn-principal">Ingresar</button>
+            <div class="form-group">
+                <label for="fecha">Escribí tu fecha de nacimiento</label>
+                <input type="date" id="fecha" required>
+            </div>
+
+            <button type="submit" class="btn-principal">Siguiente</button>
         </form>
 
-        <a class="enlace-secundario">¿Olvidaste tu contraseña?</a>
-        <a href="registro.html" class="enlace-secundario" style="margin-top: 10px;">¿No tienes cuenta? Regístrate</a>
+        <a href="index.html" class="enlace-secundario">¿Ya estás registrado? Ingresá</a>
 
         <p id="mensajeRespuesta" style="margin-top: 20px; font-weight: bold; text-align: center;"></p>
     </div>
 
     <script>
-        // La misma lógica que ya programaste para conectar con FastAPI
-        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+        document.getElementById('registroForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
+            const nombre = document.getElementById('nombre').value;
             const correo = document.getElementById('correo').value;
             const password = document.getElementById('password').value;
+            const fecha = document.getElementById('fecha').value;
             const mensajeElemento = document.getElementById('mensajeRespuesta');
 
-            mensajeElemento.innerText = "Verificando credenciales...";
+            mensajeElemento.innerText = "Creando cuenta...";
             mensajeElemento.style.color = "var(--gris-texto)";
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/login', {
+                const response = await fetch('http://127.0.0.1:8000/api/registro', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ correo: correo, password: password })
+                    body: JSON.stringify({
+                        nombre: nombre,
+                        correo: correo,
+                        password: password,
+                        fecha_nacimiento: fecha
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
                     mensajeElemento.style.color = "green";
-                    mensajeElemento.innerText = `¡Bienvenido de vuelta, ${data.nombre}!`;
-                    // Aquí después agregaremos el código para redirigir al usuario al Dashboard
+                    mensajeElemento.innerText = `¡Éxito! Cuenta creada.`;
+                    // Redirigir al inicio de sesión después de 2 segundos
+                    setTimeout(() => { window.location.href = "index.html"; }, 2000);
                 } else {
                     mensajeElemento.style.color = "red";
                     mensajeElemento.innerText = data.detail;
