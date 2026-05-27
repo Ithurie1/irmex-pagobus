@@ -75,3 +75,51 @@ app.add_middleware(
     allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
     allow_headers=["*"],  # Permite todos los encabezados
 )
+
+
+# CREATE: Registrar una nueva tarjeta
+@app.post("/api/tarjetas", response_model=schemas.TarjetaRespuesta)
+def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
+    # Verificamos que la tarjeta no exista ya
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.numero_tarjeta == tarjeta.numero_tarjeta).first()
+    if db_tarjeta:
+        raise HTTPException(status_code=400, detail="Este número de tarjeta ya está registrado")
+    
+    nueva_tarjeta = models.Tarjeta(
+        numero_tarjeta=tarjeta.numero_tarjeta,
+        saldo=tarjeta.saldo,
+        estatus=tarjeta.estatus
+    )
+    db.add(nueva_tarjeta)
+    db.commit()
+    db.refresh(nueva_tarjeta)
+    return nueva_tarjeta
+
+# READ: Obtener todas las tarjetas
+@app.get("/api/tarjetas")
+def obtener_tarjetas(db: Session = Depends(get_db)):
+    tarjetas = db.query(models.Tarjeta).all()
+    return tarjetas
+
+# UPDATE: Modificar el estatus de una tarjeta
+@app.put("/api/tarjetas/{tarjeta_id}")
+def actualizar_tarjeta(tarjeta_id: int, tarjeta_act: schemas.TarjetaActualizar, db: Session = Depends(get_db)):
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
+    if not db_tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    db_tarjeta.estatus = tarjeta_act.estatus
+    db.commit()
+    db.refresh(db_tarjeta)
+    return db_tarjeta
+
+# DELETE: Eliminar una tarjeta del sistema
+@app.delete("/api/tarjetas/{tarjeta_id}")
+def eliminar_tarjeta(tarjeta_id: int, db: Session = Depends(get_db)):
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
+    if not db_tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    db.delete(db_tarjeta)
+    db.commit()
+    return {"mensaje": "Tarjeta eliminada con éxito"}

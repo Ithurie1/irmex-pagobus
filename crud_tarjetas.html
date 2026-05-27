@@ -1,151 +1,170 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IrMex - Módulo CRUD Tarjetas</title>
+    <title>IrMex - Módulo Tarjetas</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Estilos específicos para la pantalla CRUD (Adaptados para pantalla de computadora/tablet) */
-        .crud-container {
-            background-color: var(--blanco);
-            width: 90%;
-            max-width: 1000px;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .crud-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--fondo-pantalla);
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .crud-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-        }
-
-        /* Tabla del CRUD */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: var(--azul-oscuro);
-            color: var(--blanco);
-        }
-
-        .btn-modificar {
-            background-color: #f1c40f;
-            color: #000;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn-eliminar {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .search-bar {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
+        .crud-container { background-color: var(--blanco); width: 90%; max-width: 1000px; padding: 30px; border-radius: 20px; box-shadow: 0px 4px 15px rgba(0,0,0,0.1); margin: 0 auto;}
+        .crud-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--fondo-pantalla); padding-bottom: 20px; margin-bottom: 20px; }
+        .crud-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--azul-oscuro); color: var(--blanco); }
+        .badge-activa { color: green; font-weight: bold; }
+        .badge-inactiva { color: red; font-weight: bold; }
+        .btn-modificar { background-color: #f1c40f; color: #000; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-eliminar { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
-
 <body style="height: auto; padding: 40px 0;">
 
     <div class="crud-container">
         <div class="crud-header">
-            <h2>Módulo: Gestión de Tarjetas (CRUD)</h2>
-            <a href="dashboard.html" class="btn-principal"
-                style="width: auto; padding: 10px 20px; text-decoration: none;">Volver al Menú</a>
+            <h2>Gestión de Tarjetas</h2>
+            <a href="dashboard.html" class="btn-principal" style="width: auto; padding: 10px 20px; text-decoration: none;">Volver al Menú</a>
         </div>
 
         <div class="crud-grid">
             <div style="background-color: var(--fondo-pantalla); padding: 20px; border-radius: 10px;">
-                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Registrar Tarjeta (Create)</h3>
-                <form>
+                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Registrar Tarjeta</h3>
+                <form id="formCrearTarjeta">
                     <div class="form-group">
-                        <label>Número de Tarjeta:</label>
-                        <input type="text" placeholder="Ej. 1234 5678 9012" readonly>
+                        <label>Número de Tarjeta (16 dígitos):</label>
+                        <input type="text" id="numTarjeta" minlength="16" maxlength="16" pattern="\d{16}" title="Debe contener exactamente 16 números" placeholder="Ej. 1234567890123456" required>
                     </div>
                     <div class="form-group">
-                        <label>Saldo Inicial:</label>
-                        <input type="number" placeholder="$ 0.00" readonly>
+                        <label>Saldo Inicial ($):</label>
+                        <input type="number" id="saldoInicial" placeholder="0" required>
                     </div>
                     <div class="form-group">
                         <label>Estatus:</label>
-                        <input type="text" placeholder="Activa / Inactiva" readonly>
+                        <select id="estatusTarjeta" style="width: 100%; padding: 12px; border-radius: 8px;">
+                            <option value="Activa">Activa</option>
+                            <option value="Inactiva">Inactiva</option>
+                        </select>
                     </div>
-                    <button type="button" class="btn-principal">Agregar Tarjeta</button>
+                    <button type="submit" class="btn-principal">Guardar Tarjeta</button>
+                    <p id="msgFormulario" style="margin-top: 10px; font-weight: bold;"></p>
                 </form>
             </div>
 
             <div>
                 <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Directorio de Tarjetas</h3>
-                <input type="text" class="search-bar" placeholder="🔍 Buscar por número de tarjeta..." readonly>
-
                 <table>
                     <thead>
                         <tr>
                             <th>No. Tarjeta</th>
                             <th>Saldo</th>
                             <th>Estatus</th>
-                            <th>Acciones (Update / Delete)</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>9876 5432 1098</td>
-                            <td>$ 150.00</td>
-                            <td style="color: green; font-weight: bold;">Activa</td>
-                            <td>
-                                <button type="button" class="btn-modificar">Modificar</button>
-                                <button type="button" class="btn-eliminar">Eliminar</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>1111 2222 3333</td>
-                            <td>$ 15.50</td>
-                            <td style="color: red; font-weight: bold;">Bloqueada</td>
-                            <td>
-                                <button type="button" class="btn-modificar">Modificar</button>
-                                <button type="button" class="btn-eliminar">Eliminar</button>
-                            </td>
-                        </tr>
-                    </tbody>
+                    <tbody id="tablaTarjetas">
+                        </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-</body>
+    <script>
+        // Función para cargar las tarjetas
+        async function cargarTarjetas() {
+            const tbody = document.getElementById('tablaTarjetas');
+            tbody.innerHTML = "<tr><td colspan='4'>Cargando tarjetas...</td></tr>";
 
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tarjetas');
+                const tarjetas = await response.json();
+                tbody.innerHTML = ""; 
+
+                if (tarjetas.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No hay tarjetas registradas</td></tr>";
+                    return;
+                }
+
+                tarjetas.forEach(t => {
+                    const estatusClass = t.estatus === 'Activa' ? 'badge-activa' : 'badge-inactiva';
+                    // Aquí es donde "inyectamos" el ID de la tarjeta en los botones
+                    const fila = `
+                        <tr>
+                            <td>${t.numero_tarjeta}</td>
+                            <td>$ ${t.saldo}.00</td>
+                            <td class="${estatusClass}">${t.estatus}</td>
+                            <td>
+                                <button class="btn-modificar" onclick="cambiarEstatus(${t.tarjeta_id}, '${t.estatus}')">Bloquear/Activar</button>
+                                <button class="btn-eliminar" onclick="borrarTarjeta(${t.tarjeta_id})">Borrar</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += fila;
+                });
+            } catch (error) {
+                tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Error al conectar con el servidor</td></tr>";
+            }
+        }
+
+        // NUEVA FUNCIÓN: Borrar Tarjeta (DELETE)
+        async function borrarTarjeta(id) {
+            if(confirm("¿Estás seguro de que deseas eliminar esta tarjeta del sistema?")) {
+                await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}`, {
+                    method: 'DELETE'
+                });
+                cargarTarjetas(); // Recargamos la tabla automáticamente
+            }
+        }
+
+        // NUEVA FUNCIÓN: Cambiar Estatus (PUT)
+        async function cambiarEstatus(id, estatusActual) {
+            // Si está activa la pasa a Inactiva, y viceversa
+            const nuevoEstatus = estatusActual === 'Activa' ? 'Inactiva' : 'Activa';
+            
+            await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ estatus: nuevoEstatus })
+            });
+            cargarTarjetas(); // Recargamos la tabla automáticamente
+        }
+
+        // Función para guardar una nueva tarjeta (CREATE)
+        document.getElementById('formCrearTarjeta').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const num = document.getElementById('numTarjeta').value;
+            const saldo = document.getElementById('saldoInicial').value;
+            const estatus = document.getElementById('estatusTarjeta').value;
+            const msg = document.getElementById('msgFormulario');
+
+            msg.style.color = "blue";
+            msg.innerText = "Guardando...";
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ numero_tarjeta: num, saldo: parseInt(saldo), estatus: estatus })
+                });
+
+                if (response.ok) {
+                    msg.style.color = "green";
+                    msg.innerText = "Tarjeta guardada con éxito";
+                    document.getElementById('formCrearTarjeta').reset();
+                    cargarTarjetas(); 
+                } else {
+                    const errorData = await response.json();
+                    msg.style.color = "red";
+                    msg.innerText = errorData.detail;
+                }
+            } catch (error) {
+                msg.style.color = "red";
+                msg.innerText = "Error en el servidor";
+            }
+            setTimeout(() => { msg.innerText = ""; }, 3000);
+        });
+
+        // Ejecutar la carga al abrir la página
+        cargarTarjetas();
+    </script>
+</body>
 </html>

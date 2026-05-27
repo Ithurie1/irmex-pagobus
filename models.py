@@ -16,3 +16,11 @@ class Usuario(Base):
     # Algunos campos del perfil (agregados aquí para facilitar el registro inicial)
     fecha_nacimiento = Column(Date, nullable=True) 
     es_estudiante = Column(Boolean, default=False)
+
+class Tarjeta(Base):
+    __tablename__ = "tarjetas"
+
+    tarjeta_id = Column(Integer, primary_key=True, index=True)
+    numero_tarjeta = Column(String(16), unique=True, index=True)
+    saldo = Column(Integer, default=0) # Usamos Integer o Float para el dinero
+    estatus = Column(String(20), default="Activa")    
