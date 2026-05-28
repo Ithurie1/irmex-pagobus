@@ -61,11 +61,11 @@
             <h4 style="color: var(--azul-medio); margin-bottom: 10px;">Datos Generales</h4>
             <div class="form-group">
                 <label>Nombre Completo</label>
-                <input type="text" value="Héctor Mauricio" readonly>
+                <input type="text" value="" readonly>
             </div>
             <div class="form-group">
                 <label>Correo Electrónico (Institucional)</label>
-                <input type="email" value="22240332@leon.tecnm.mx" readonly>
+                <input type="email" value="" readonly>
             </div>
 
             <h4 style="color: var(--azul-medio); margin-top: 20px; margin-bottom: 10px;">Información de Estudiante</h4>
@@ -87,6 +87,47 @@
             <button type="button" class="btn-principal" style="margin-top: 15px;">Guardar Cambios</button>
         </form>
     </div>
+
+<script>
+        async function cargarDatosPerfil() {
+            // 1. Sacamos el token de la mochila del navegador
+            const token = localStorage.getItem('token');
+            
+            // Si no hay token, lo regresamos al login a patadas
+            if (!token) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                // 2. Hacemos la petición al backend, enviando el token en la cabecera
+                const response = await fetch('http://127.0.0.1:8000/api/perfil', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}` // Aquí enseñamos el gafete
+                    }
+                });
+
+                if (response.ok) {
+                    const datosUsuario = await response.json();
+                    
+                    // 3. Pintamos los datos reales en la pantalla
+                    // Asumiendo que le pusiste id="nombrePerfil" e id="correoPerfil" a tus inputs
+                    document.querySelector('input[type="text"]').value = datosUsuario.nombre;
+                    document.querySelector('input[type="email"]').value = datosUsuario.correo;
+                } else {
+                    // Si el token caducó o es inválido
+                    localStorage.removeItem('token');
+                    window.location.href = "index.html";
+                }
+            } catch (error) {
+                console.error("Error al conectar con el servidor", error);
+            }
+        }
+
+        // Ejecutamos la función apenas cargue la página
+        cargarDatosPerfil();
+    </script>
 
 </body>
 

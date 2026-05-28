@@ -72,11 +72,60 @@
             <a href="perfil.html" class="menu-btn">Mi Perfil </a>
         </div>
 
-        <a href="index.html" style="margin-top: 30px; color: #e74c3c; text-decoration: none; font-weight: bold;">Cerrar
-            Sesión</a>
+        <button onclick="cerrarSesion()" style="margin-top: 30px; background: none; border: none; color: #e74c3c; font-weight: bold; cursor: pointer; font-size: 16px;">Cerrar Sesión</button>
 
         <a class="enlace-secundario" style="margin-top: auto; padding-top: 20px;">¿Necesitas ayuda? Contactanos</a>
     </div>
+
+<script>
+        async function cargarDashboard() {
+            // 1. Revisamos si el usuario trae su "gafete" (Token)
+            const token = localStorage.getItem('token');
+            
+            // Si no trae token, lo pateamos de regreso al Login
+            if (!token) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            try {
+                // 2. Le preguntamos al backend de quién es este token
+                const response = await fetch('http://127.0.0.1:8000/api/perfil', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const datosUsuario = await response.json();
+                    
+                    // 3. Modificamos el HTML para saludarlo por su nombre real
+                    // Busca en tu HTML dónde dice "Hola, Usuario" o similar y ponle un id="nombreUsuario"
+                    const elementoNombre = document.getElementById('nombreUsuario');
+                    if (elementoNombre) {
+                        // Solo mostramos el primer nombre para que se vea estético
+                        const primerNombre = datosUsuario.nombre.split(' ')[0]; 
+                        elementoNombre.innerText = `Hola, ${primerNombre}`;
+                    }
+                } else {
+                    // Si el token es falso o ya expiró (pasó 1 hora)
+                    cerrarSesion();
+                }
+            } catch (error) {
+                console.error("Error al conectar con el servidor", error);
+            }
+        }
+
+        // Función para destruir el token y salir
+        function cerrarSesion() {
+            localStorage.removeItem('token');
+            window.location.href = "index.html";
+        }
+
+        // Ejecutamos la protección apenas se abre la página
+        cargarDashboard();
+    </script>
 
 </body>
 

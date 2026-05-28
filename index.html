@@ -60,9 +60,15 @@
                 const data = await response.json();
 
                 if (response.ok) {
+                    // 1. Guardamos el Gafete VIP en la memoria del navegador
+                    localStorage.setItem('token', data.access_token);
+                    
                     mensajeElemento.style.color = "green";
-                    mensajeElemento.innerText = `¡Bienvenido de vuelta, ${data.nombre}!`;
-                    // Aquí después agregaremos el código para redirigir al usuario al Dashboard
+                    mensajeElemento.innerText = `¡Bienvenido de vuelta, ${data.nombre}! Entrando...`;
+                    
+                    setTimeout(() => {
+                        window.location.href = "dashboard.html";
+                    }, 1000);
                 } else {
                     mensajeElemento.style.color = "red";
                     mensajeElemento.innerText = data.detail;
