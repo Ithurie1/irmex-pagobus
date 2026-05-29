@@ -60,9 +60,19 @@
             </div>
         </div>
 
-        <div class="saldo-container">
-            <p style="color: var(--gris-texto); font-weight: bold;">SALDO DISPONIBLE</p>
-            <p class="saldo-cantidad">$00.00</p>
+        <div style="background-color: var(--azul-oscuro); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <h3 style="margin-bottom: 15px; font-size: 18px;">Billetera Virtual / Inspector</h3>
+            
+            <select id="selectorTarjetas" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 16px; border: none; outline: none;">
+                <option value="">Cargando tarjetas...</option>
+            </select>
+            
+            <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 5px;">Saldo disponible:</p>
+            <h1 id="saldoMostrado" style="font-size: 40px; margin: 0 0 10px 0; color: #2ecc71;">$ 0.00</h1>
+            
+            <span id="estatusMostrado" style="padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: rgba(255,255,255,0.2);">
+                Selecciona una tarjeta
+            </span>
         </div>
 
         <div style="width: 100%;">
@@ -108,6 +118,7 @@
                         const primerNombre = datosUsuario.nombre.split(' ')[0]; 
                         elementoNombre.innerText = `Hola, ${primerNombre}`;
                     }
+                    cargarTarjetasBilletera();
                 } else {
                     // Si el token es falso o ya expiró (pasó 1 hora)
                     cerrarSesion();
@@ -125,6 +136,68 @@
 
         // Ejecutamos la protección apenas se abre la página
         cargarDashboard();
+
+        // NUEVA FUNCIÓN: Cargar tarjetas en el selector interactivo
+        async function cargarTarjetasBilletera() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tarjetas');
+                if (response.ok) {
+                    const tarjetas = await response.json();
+                    const selector = document.getElementById('selectorTarjetas');
+                    
+                    if (tarjetas.length === 0) {
+                        selector.innerHTML = '<option value="">No hay tarjetas registradas</option>';
+                        return;
+                    }
+
+                    selector.innerHTML = '<option value="">👇 Selecciona una tarjeta para ver su saldo</option>';
+                    window.datosTarjetas = tarjetas;
+
+                    tarjetas.forEach(t => {
+                        selector.innerHTML += `<option value="${t.tarjeta_id}">Terminación ...${t.numero_tarjeta.slice(-4)}</option>`;
+                    });
+
+                    // 1. PRIMERO CREAMOS EL EVENTO (El "oído" que actualiza el texto)
+                    selector.addEventListener('change', (e) => {
+                        const idSeleccionado = e.target.value;
+                        const tarjetaSel = window.datosTarjetas.find(t => t.tarjeta_id == idSeleccionado);
+                        const txtSaldo = document.getElementById('saldoMostrado');
+                        const tagEstatus = document.getElementById('estatusMostrado');
+
+                        if (tarjetaSel) {
+                            localStorage.setItem('tarjeta_seleccionada_id', tarjetaSel.tarjeta_id);
+                            txtSaldo.innerText = `$ ${tarjetaSel.saldo}.00`;
+                            tagEstatus.innerText = `Estatus: ${tarjetaSel.estatus}`;
+                            if (tarjetaSel.estatus === 'Activa') {
+                                txtSaldo.style.color = '#2ecc71'; 
+                                tagEstatus.style.backgroundColor = 'rgba(46, 204, 113, 0.2)';
+                                tagEstatus.style.color = '#2ecc71';
+                            } else {
+                                txtSaldo.style.color = '#e74c3c'; 
+                                tagEstatus.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
+                                tagEstatus.style.color = '#e74c3c';
+                            }
+                        } else {
+                            localStorage.removeItem('tarjeta_seleccionada_id');
+                            txtSaldo.innerText = `$ 0.00`;
+                            txtSaldo.style.color = '#2ecc71';
+                            tagEstatus.innerText = 'Selecciona una tarjeta';
+                            tagEstatus.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                            tagEstatus.style.color = 'white';
+                        }
+                    });
+
+                    // 2. DESPUÉS HACEMOS LA AUTO-SELECCIÓN (Para que el evento de arriba sí se entere)
+                    const tarjetaGuardadaId = localStorage.getItem('tarjeta_seleccionada_id');
+                    if (tarjetaGuardadaId) {
+                        selector.value = tarjetaGuardadaId;
+                        selector.dispatchEvent(new Event('change')); // Disparamos la actualización visual
+                    }
+                }
+            } catch (error) {
+                console.error("Error al cargar la billetera", error);
+            }
+        }
     </script>
 
 </body>

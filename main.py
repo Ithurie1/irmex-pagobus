@@ -7,7 +7,6 @@ from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 import models, schemas
 from database import engine, SessionLocal
-
 # =========================================================
 # 1. CREACIÓN DE LA APP Y BASE DE DATOS
 # =========================================================
@@ -187,3 +186,30 @@ def eliminar_tarjeta(tarjeta_id: int, db: Session = Depends(get_db)):
     db.delete(db_tarjeta)
     db.commit()
     return {"mensaje": "Tarjeta eliminada con éxito"}
+
+# RUTA PARA RECARGAR DINERO
+@app.post("/api/recargar")
+def recargar_saldo(data: dict, db: Session = Depends(get_db)):
+    # 1. Buscamos la tarjeta
+    tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == data["tarjeta_id"]).first()
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    # 2. Sumamos el saldo
+    tarjeta.saldo += float(data["monto"])
+    
+    # 3. Guardamos el historial
+    nuevo_mov = models.Movimiento(
+        tarjeta_id=tarjeta.tarjeta_id,
+        descripcion="Recarga de Saldo",
+        monto=float(data["monto"]),
+        fecha=datetime.now().strftime("%d/%m/%Y %H:%M")
+    )
+    db.add(nuevo_mov)
+    db.commit()
+    return {"mensaje": "Recarga exitosa", "nuevo_saldo": tarjeta.saldo}
+
+# RUTA PARA VER EL HISTORIAL
+@app.get("/api/historial/{tarjeta_id}")
+def obtener_historial(tarjeta_id: int, db: Session = Depends(get_db)):
+    return db.query(models.Movimiento).filter(models.Movimiento.tarjeta_id == tarjeta_id).all()

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, DateTime, Date
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
 
@@ -24,3 +24,11 @@ class Tarjeta(Base):
     numero_tarjeta = Column(String(16), unique=True, index=True)
     saldo = Column(Integer, default=0) # Usamos Integer o Float para el dinero
     estatus = Column(String(20), default="Activa")    
+
+class Movimiento(Base):
+    __tablename__ = "movimientos"
+    id = Column(Integer, primary_key=True, index=True)
+    tarjeta_id = Column(Integer, ForeignKey("tarjetas.tarjeta_id"))
+    descripcion = Column(String) # Ej: "Recarga" o "Ruta Troncal"
+    monto = Column(Float)
+    fecha = Column(String) # Guardaremos la fecha como texto por simplicidad    

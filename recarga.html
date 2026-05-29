@@ -43,14 +43,12 @@
         </div>
 
         <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Recargar Saldo</h2>
-        <p style="color: var(--gris-texto); font-size: 14px; margin-bottom: 15px;">Selecciona el monto a recargar a tu
-            tarjeta que termina en <strong>1098</strong></p>
+        <p>Selecciona el monto a recargar a tu tarjeta que termina en <strong id="terminacionTarjeta">----</strong></p>
 
-        <div class="grid-montos">
-            <button class="btn-monto" type="button">$ 20.00</button>
-            <button class="btn-monto" type="button">$ 50.00</button>
-            <button class="btn-monto" type="button">$ 100.00</button>
-            <button class="btn-monto" type="button">$ 200.00</button>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; color: var(--azul-oscuro); font-weight: bold; margin-bottom: 8px;">Monto a recargar ($):</label>
+            <input type="number" id="inputMonto" placeholder="Ej. 150" min="1" step="1" 
+                   style="width: 100%; padding: 12px; border: 2px solid var(--azul-claro); border-radius: 8px; font-size: 18px; outline: none;">
         </div>
 
         <div class="form-group">
@@ -62,8 +60,85 @@
             </select>
         </div>
 
-        <button type="button" class="btn-principal" style="margin-top: 20px;">Proceder al Pago</button>
+       <button type="button" class="btn-principal" style="margin-top: 20px;" onclick="realizarRecarga()">
+    Proceder al Pago
+</button>
+        
     </div>
+
+<script>
+        // 1. Al cargar la página, verificamos qué tarjeta se seleccionó
+        document.addEventListener("DOMContentLoaded", async () => {
+            const tarjetaId = localStorage.getItem('tarjeta_seleccionada_id');
+            
+            if (!tarjetaId) {
+                alert("Por favor, primero selecciona una tarjeta en el Menú Principal.");
+                window.location.href = "dashboard.html";
+                return;
+            }
+
+            // Buscamos los datos de esa tarjeta para actualizar el número en pantalla
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/tarjetas');
+                if (response.ok) {
+                    const tarjetas = await response.json();
+                    const tarjetaActiva = tarjetas.find(t => t.tarjeta_id == parseInt(tarjetaId));
+                    
+                    if (tarjetaActiva) {
+                        // Sacamos los últimos 4 dígitos y los pintamos en el HTML
+                        const ultimos4 = tarjetaActiva.numero_tarjeta.slice(-4);
+                        document.getElementById('terminacionTarjeta').innerText = ultimos4;
+                    }
+                }
+            } catch (error) {
+                console.error("Error al cargar datos de la tarjeta:", error);
+            }
+        });
+
+        // 2. La función para hacer el pago
+       async function realizarRecarga() {
+            const tarjetaId = localStorage.getItem('tarjeta_seleccionada_id'); 
+            
+            // 1. Leemos el valor del cuadro de texto
+            const valorInput = document.getElementById('inputMonto').value;
+            const montoRecarga = parseFloat(valorInput);
+
+            // 2. Validamos que no metan números negativos o vacíos
+            if (!valorInput || montoRecarga <= 0) {
+                alert("Por favor, ingresa un monto válido mayor a $0.");
+                return;
+            }
+
+            const btn = document.querySelector('.btn-principal');
+            btn.innerText = "Procesando pago...";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/recargar', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        tarjeta_id: parseInt(tarjetaId), 
+                        monto: montoRecarga 
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`¡Recarga Exitosa! Tu nuevo saldo es de $${data.nuevo_saldo}.00`);
+                    window.location.href = "dashboard.html"; 
+                } else {
+                    alert("Hubo un error al procesar la recarga.");
+                    btn.innerText = "Proceder al Pago";
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                alert("Error de conexión con el servidor.");
+                btn.innerText = "Proceder al Pago";
+                btn.disabled = false;
+            }
+        }
+    </script>
 
 </body>
 
