@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Registro</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div class="logo-container">
+            <img src="/static/logoitl.png" alt="Logo IrMex"
+                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        </div>
+
+        <h1>Creá una cuenta nueva</h1>
+
+        <form id="registroForm" style="width: 100%;">
+            <div class="form-group">
+                <label for="nombre">Escribí tu nombre</label>
+                <input type="text" id="nombre" required>
+            </div>
+
+            <div class="form-group">
+                <label for="correo">Escribí tu correo electrónico</label>
+                <input type="email" id="correo" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Escribí tu contraseña</label>
+                <input type="password" id="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="fecha">Escribí tu fecha de nacimiento</label>
+                <input type="date" id="fecha" required>
+            </div>
+
+            <button type="submit" class="btn-principal">Siguiente</button>
+        </form>
+
+        <a href="index.html" class="enlace-secundario">¿Ya estás registrado? Ingresá</a>
+
+        <p id="mensajeRespuesta" style="margin-top: 20px; font-weight: bold; text-align: center;"></p>
+    </div>
+
+    <script src="/static/js/registro.js"></script>
+</body>
+
+</html>

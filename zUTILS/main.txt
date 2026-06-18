@@ -1,0 +1,494 @@
+from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+import jwt
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
+import models, schemas
+from database import engine, SessionLocal
+import random
+from pydantic import BaseModel
+from fastapi import File, UploadFile
+import shutil
+import os
+from fastapi.responses import FileResponse
+# Crear carpeta de documentos (cumpliendo con RN_02 de seguridad)
+os.makedirs("documentos_seguros", exist_ok=True)
+# =========================================================
+# 1. CREACIÓN DE LA APP Y BASE DE DATOS
+# =========================================================
+models.Base.metadata.create_all(bind=engine)
+app = FastAPI()
+
+# =========================================================
+# 2. CONFIGURACIÓN DE CORS (Para conectar con el HTML)
+# =========================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite peticiones de cualquier origen (ideal para desarrollo local)
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],  # Permite todos los encabezados
+)
+
+# =========================================================
+# 3. CONFIGURACIÓN DE SEGURIDAD (Bcrypt y JWT)
+# =========================================================
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = "la_clave_super_secreta_de_irmex_no_compartir" 
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+# =========================================================
+# 4. FUNCIONES AUXILIARES Y DEPENDENCIAS
+# =========================================================
+def obtener_password_hash(password):
+    return pwd_context.hash(password)
+
+def verificar_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def crear_token_acceso(data: dict, expires_delta: timedelta):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + expires_delta
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# EL "CADENERO" (Filtro de seguridad JWT)
+def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    excepcion_credenciales = HTTPException(
+        status_code=401,
+        detail="No se pudieron validar las credenciales o el token expiró",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        correo: str = payload.get("sub")
+        if correo is None:
+            raise excepcion_credenciales
+    except jwt.InvalidTokenError:
+        raise excepcion_credenciales
+    
+    usuario = db.query(models.Usuario).filter(models.Usuario.correo == correo).first()
+    if usuario is None:
+        raise excepcion_credenciales
+    
+    return usuario
+
+
+# =========================================================
+# 5. RUTAS DE LA API (Endpoints)
+# =========================================================
+
+@app.get("/")
+def leer_raiz():
+    return {"mensaje": "¡El backend de IrMex está vivo y seguro!"}
+
+@app.post("/api/registro")
+def registrar_usuario(usuario: schemas.UsuarioCrear, db: Session = Depends(get_db)):
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
+    if db_usuario:
+        raise HTTPException(status_code=400, detail="Este correo ya está registrado")
+    
+    hashed_password = obtener_password_hash(usuario.password)
+    
+    # --- REGLA DE NEGOCIO AUTOMÁTICA PARA ROLES ---
+    # Si el correo contiene la palabra "admin", es_estudiante será False (es decir, será Admin).
+    # De lo contrario, será True (Estudiante).
+    es_estu = True
+    if "admin" in usuario.correo.lower():
+        es_estu = False
+    # -----------------------------------------------
+    
+    nuevo_usuario = models.Usuario(
+        nombre=usuario.nombre,
+        correo=usuario.correo,
+        password_hash=hashed_password,
+        fecha_nacimiento=usuario.fecha_nacimiento,
+        es_estudiante=es_estu  # <-- Le pasamos el rol calculado
+    )
+    
+    db.add(nuevo_usuario)
+    db.commit()
+    db.refresh(nuevo_usuario)
+
+    if es_estu:
+        numero_aleatorio = str(random.randint(1000000000000000, 9999999999999999))
+        nueva_tarjeta = models.Tarjeta(
+            numero_tarjeta=numero_aleatorio,
+            saldo=0.0,
+            estatus="Activa",
+            usuario_id=nuevo_usuario.usuario_id # Queda vinculada a este usuario
+        )
+        db.add(nueva_tarjeta)
+        db.commit()
+    
+    return {"mensaje": "Usuario creado con éxito", "usuario_id": nuevo_usuario.usuario_id}
+
+@app.post("/api/login")
+def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db)):
+    # 1. Buscar al usuario por correo
+    db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
+    
+    # 2. Verificar contraseña
+    if not db_usuario or not verificar_password(usuario.password, db_usuario.password_hash):
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos")
+    
+    # 3. ¡FABRICAMOS EL TOKEN!
+    tiempo_expiracion = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    token_jwt = crear_token_acceso(
+        data={"sub": db_usuario.correo}, 
+        expires_delta=tiempo_expiracion
+    )
+    
+   # 4. Entregamos el token al frontend
+    return {
+        "access_token": token_jwt, 
+        "token_type": "bearer",
+        "mensaje": "Inicio de sesión exitoso", 
+        "usuario_id": db_usuario.usuario_id, 
+        "nombre": db_usuario.nombre,
+        "es_estudiante": db_usuario.es_estudiante  # <-- NUEVO: Mandamos el rol
+    }
+
+# RUTA PROTEGIDA: Solo usuarios con token pueden ver su perfil
+@app.get("/api/perfil")
+def leer_perfil(usuario_actual: models.Usuario = Depends(obtener_usuario_actual)):
+    return {
+        "nombre": usuario_actual.nombre,
+        "correo": usuario_actual.correo,
+        "fecha_nacimiento": usuario_actual.fecha_nacimiento,
+        "curp": usuario_actual.curp,
+        "calle": usuario_actual.calle,
+        "numero": usuario_actual.numero,
+        "colonia": usuario_actual.colonia,
+        "cp": usuario_actual.cp
+    }
+
+# RUTA PARA ACTUALIZAR LOS DATOS DEL PERFIL (PUT)
+@app.put("/api/perfil")
+def actualizar_perfil(datos: dict, usuario_actual: models.Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+    if "nombre" in datos and datos["nombre"].strip():
+        usuario_actual.nombre = datos["nombre"]
+        
+    if "fecha_nacimiento" in datos and datos["fecha_nacimiento"]:
+        try:
+            from datetime import datetime
+            fecha_objeto = datetime.strptime(datos["fecha_nacimiento"], "%Y-%m-%d").date()
+            usuario_actual.fecha_nacimiento = fecha_objeto
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de fecha incorrecto")
+
+    # Guardamos los nuevos campos si vienen en la petición
+    if "curp" in datos: usuario_actual.curp = datos["curp"]
+    if "calle" in datos: usuario_actual.calle = datos["calle"]
+    if "numero" in datos: usuario_actual.numero = datos["numero"]
+    if "colonia" in datos: usuario_actual.colonia = datos["colonia"]
+    if "cp" in datos: usuario_actual.cp = datos["cp"]
+
+    db.commit()
+    db.refresh(usuario_actual)
+    return {"mensaje": "Perfil actualizado con éxito"}
+
+# --- RUTAS DEL CRUD DE TARJETAS ---
+
+@app.post("/api/tarjetas", response_model=schemas.TarjetaRespuesta)
+def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.numero_tarjeta == tarjeta.numero_tarjeta).first()
+    if db_tarjeta:
+        raise HTTPException(status_code=400, detail="Este número de tarjeta ya está registrado")
+    
+    nueva_tarjeta = models.Tarjeta(
+        numero_tarjeta=tarjeta.numero_tarjeta,
+        saldo=tarjeta.saldo,
+        estatus=tarjeta.estatus
+    )
+    db.add(nueva_tarjeta)
+    db.commit()
+    db.refresh(nueva_tarjeta)
+    return nueva_tarjeta
+
+@app.get("/api/tarjetas")
+def obtener_tarjetas(db: Session = Depends(get_db)):
+    tarjetas = db.query(models.Tarjeta).all()
+    return tarjetas
+
+@app.put("/api/tarjetas/{tarjeta_id}")
+def actualizar_tarjeta(tarjeta_id: int, tarjeta_act: schemas.TarjetaActualizar, db: Session = Depends(get_db)):
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
+    if not db_tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    db_tarjeta.estatus = tarjeta_act.estatus
+    db.commit()
+    db.refresh(db_tarjeta)
+    return db_tarjeta
+
+@app.delete("/api/tarjetas/{tarjeta_id}")
+def eliminar_tarjeta(tarjeta_id: int, db: Session = Depends(get_db)):
+    db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
+    if not db_tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    db.delete(db_tarjeta)
+    db.commit()
+    return {"mensaje": "Tarjeta eliminada con éxito"}
+
+# RUTA PARA RECARGAR DINERO
+# RUTA PARA RECARGAR DINERO
+@app.post("/api/recargar")
+def recargar_saldo(data: dict, db: Session = Depends(get_db)):
+    # 1. Buscamos la tarjeta
+    tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == data["tarjeta_id"]).first()
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+    
+    # 2. Sumamos el saldo
+    tarjeta.saldo += float(data["monto"])
+    
+    # 3. Guardamos el historial (CON LOS NOMBRES ACTUALIZADOS)
+    nuevo_mov = models.Movimiento(
+        tarjeta_id=tarjeta.tarjeta_id,
+        tipo="Recarga de Saldo",          # <-- Antes decía 'descripcion'
+        monto=float(data["monto"]),
+        fecha_hora=datetime.now().strftime("%d/%m/%Y %H:%M"), # <-- Antes decía 'fecha'
+        origen="N/A",                     # <-- Agregamos origen
+        destino="N/A"                     # <-- Agregamos destino
+    )
+    db.add(nuevo_mov)
+    db.commit()
+    return {"mensaje": "Recarga exitosa", "nuevo_saldo": tarjeta.saldo}
+
+# RUTA PARA VER EL HISTORIAL
+@app.get("/api/historial/{tarjeta_id}")
+def obtener_historial(tarjeta_id: int, db: Session = Depends(get_db)):
+    return db.query(models.Movimiento).filter(models.Movimiento.tarjeta_id == tarjeta_id).all()
+
+# RUTA PROTEGIDA: Solo devuelve las tarjetas del usuario logueado
+@app.get("/api/mis-tarjetas")
+def obtener_mis_tarjetas(usuario_actual: models.Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+    tarjetas = db.query(models.Tarjeta).filter(models.Tarjeta.usuario_id == usuario_actual.usuario_id).all()
+    return tarjetas
+
+# Esquema para recibir los datos de recuperación
+class RecuperarPassword(BaseModel):
+    correo: str
+    fecha_nacimiento: str
+    nueva_password: str
+
+@app.post("/api/recuperar-password")
+def recuperar_password(datos: RecuperarPassword, db: Session = Depends(get_db)):
+    # 1. Buscamos si existe el correo (le quitamos espacios en blanco por si acaso)
+    usuario = db.query(models.Usuario).filter(models.Usuario.correo == datos.correo.strip()).first()
+    
+    if not usuario:
+        raise HTTPException(status_code=404, detail="El correo no está registrado.")
+        
+    # 2. Validamos la "Pregunta de Seguridad" (Fecha de nacimiento)
+    # FORZAMOS a que ambos sean texto para que la comparación sea exacta
+    fecha_db = str(usuario.fecha_nacimiento).strip()
+    fecha_input = str(datos.fecha_nacimiento).strip()
+    
+    if fecha_db != fecha_input:
+        raise HTTPException(status_code=400, detail="Los datos de validación no coinciden.")
+        
+    # 3. Si todo está bien, encriptamos la nueva contraseña y actualizamos
+    usuario.password_hash = obtener_password_hash(datos.nueva_password)
+    db.commit()
+    
+    return {"mensaje": "Contraseña actualizada correctamente. Ya puedes iniciar sesión."}
+
+class EstacionCrear(BaseModel):
+    nombre: str
+    tipo: str
+
+# ==========================================
+# RUTAS PARA GESTIÓN DE ESTACIONES (REQ-008)
+# ==========================================
+
+@app.post("/api/estaciones")
+def crear_estacion(estacion: EstacionCrear, db: Session = Depends(get_db)):
+    db_estacion = db.query(models.Estacion).filter(models.Estacion.nombre == estacion.nombre).first()
+    if db_estacion:
+        raise HTTPException(status_code=400, detail="Esta estación ya existe")
+    
+    nueva_estacion = models.Estacion(nombre=estacion.nombre, tipo=estacion.tipo)
+    db.add(nueva_estacion)
+    db.commit()
+    return {"mensaje": "Estación registrada con éxito"}
+
+@app.get("/api/estaciones")
+def obtener_estaciones(db: Session = Depends(get_db)):
+    return db.query(models.Estacion).all()
+
+@app.put("/api/estaciones/{estacion_id}")
+def cambiar_estatus_estacion(estacion_id: int, db: Session = Depends(get_db)):
+    estacion = db.query(models.Estacion).filter(models.Estacion.id == estacion_id).first()
+    if not estacion:
+        raise HTTPException(status_code=404, detail="Estación no encontrada")
+    
+    # Alternar el estatus entre Operativa y Mantenimiento
+    estacion.estatus = "Mantenimiento" if estacion.estatus == "Operativa" else "Operativa"
+    db.commit()
+    return {"mensaje": "Estatus actualizado", "nuevo_estatus": estacion.estatus}    
+
+# ==========================================
+# RF_05: VERIFICAR ESTATUS DE USUARIO
+# ==========================================
+@app.get("/api/verificar-estudiante/{correo}")
+def verificar_estudiante(correo: str, db: Session = Depends(get_db)):
+    # 1. Buscamos al estudiante por su correo (matrícula)
+    usuario = db.query(models.Usuario).filter(models.Usuario.correo == correo, models.Usuario.es_estudiante == True).first()
+    
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado en el sistema.")
+        
+    # 2. Buscamos la tarjeta vinculada a este estudiante
+    tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.usuario_id == usuario.usuario_id).first()
+    
+    # 3. Determinamos su estatus
+    estatus_tarjeta = tarjeta.estatus if tarjeta else "Sin tarjeta asignada"
+    
+    return {
+        "nombre": usuario.nombre,
+        "correo": usuario.correo,
+        "estatus_tarjeta": estatus_tarjeta
+    }
+
+# ==========================================
+# REPOSICIÓN DE TARJETA (Propuesta del Tester)
+# ==========================================
+@app.post("/api/asignar-tarjeta/{correo}")
+def asignar_nueva_tarjeta(correo: str, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.correo == correo, models.Usuario.es_estudiante == True).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+
+    # 1. Por seguridad, desactivamos todas las tarjetas anteriores que tenga el usuario
+    tarjetas_antiguas = db.query(models.Tarjeta).filter(models.Tarjeta.usuario_id == usuario.usuario_id).all()
+    for t in tarjetas_antiguas:
+        t.estatus = "Inactiva"
+
+    # 2. Le creamos su nueva tarjeta aleatoria
+    import random
+    numero_aleatorio = str(random.randint(1000000000000000, 9999999999999999))
+    nueva_tarjeta = models.Tarjeta(
+        numero_tarjeta=numero_aleatorio,
+        saldo=0.0,  # Empieza en cero por ser reposición
+        estatus="Activa",
+        usuario_id=usuario.usuario_id
+    )
+    db.add(nueva_tarjeta)
+    db.commit()
+    
+    return {"mensaje": f"Reposición exitosa. Nueva tarjeta asignada: {numero_aleatorio}"}
+
+# ==========================================
+# RF_09: SOLICITAR RENOVACIÓN (Subida de archivos)
+# ==========================================
+@app.post("/api/solicitar-renovacion")
+async def solicitar_renovacion(
+    archivo: UploadFile = File(...),
+    usuario_actual: models.Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(get_db)
+):
+    # 1. Validamos que el estudiante no tenga ya una solicitud pendiente
+    solicitud_previa = db.query(models.Renovacion).filter(
+        models.Renovacion.usuario_id == usuario_actual.usuario_id,
+        models.Renovacion.estatus == "Pendiente"
+    ).first()
+    
+    if solicitud_previa:
+        raise HTTPException(status_code=400, detail="Ya tienes una solicitud en revisión.")
+
+    # 2. Generamos un nombre único y seguro para el archivo
+    extension = archivo.filename.split(".")[-1]
+    nombre_seguro = f"ine_estudiante_{usuario_actual.usuario_id}.{extension}"
+    ruta_guardado = f"documentos_seguros/{nombre_seguro}"
+
+    # 3. Guardamos el archivo físico en el servidor
+    with open(ruta_guardado, "wb") as buffer:
+        shutil.copyfileobj(archivo.file, buffer)
+
+    # 4. Registramos el trámite en la base de datos
+    nueva_renovacion = models.Renovacion(
+        usuario_id=usuario_actual.usuario_id,
+        archivo_ruta=ruta_guardado,
+        estatus="Pendiente",
+        fecha=datetime.now().strftime("%d/%m/%Y")
+    )
+    db.add(nueva_renovacion)
+    db.commit()
+
+    return {"mensaje": "Documento subido y protegido. En revisión por administración."}
+
+# ==========================================
+# RF_10 y RN_02: VERIFICAR RENOVACIONES (Admin)
+# ==========================================
+
+# 1. Obtener la lista de solicitudes pendientes
+@app.get("/api/renovaciones/pendientes")
+def obtener_renovaciones_pendientes(db: Session = Depends(get_db)):
+    # Buscamos solo las que dicen "Pendiente"
+    pendientes = db.query(models.Renovacion).filter(models.Renovacion.estatus == "Pendiente").all()
+    
+    resultados = []
+    for r in pendientes:
+        usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == r.usuario_id).first()
+        if usuario:
+            # Solo enviamos el nombre del archivo, no la ruta completa por seguridad
+            nombre_archivo = r.archivo_ruta.split("/")[-1] 
+            
+            resultados.append({
+                "id_renovacion": r.id,
+                "nombre_usuario": usuario.nombre,
+                "correo": usuario.correo,
+                "fecha": r.fecha,
+                "nombre_archivo": nombre_archivo
+            })
+    return resultados
+
+# 2. Servir el documento de forma segura (RN_02)
+@app.get("/api/documentos-seguros/{nombre_archivo}")
+def ver_documento_seguro(nombre_archivo: str):
+    ruta_fisica = f"documentos_seguros/{nombre_archivo}"
+    
+    # Verificamos que el archivo realmente exista en la bóveda
+    if not os.path.exists(ruta_fisica):
+        raise HTTPException(status_code=404, detail="El documento no existe o fue eliminado.")
+        
+    # FileResponse toma el archivo físico y lo manda a la pantalla
+    return FileResponse(ruta_fisica)
+
+# 3. Aprobar o Rechazar el trámite
+class EstatusRenovacion(BaseModel):
+    estatus: str  # Debe ser "Aprobada" o "Rechazada"
+
+@app.put("/api/renovaciones/{renovacion_id}")
+def procesar_renovacion(renovacion_id: int, datos: EstatusRenovacion, db: Session = Depends(get_db)):
+    renovacion = db.query(models.Renovacion).filter(models.Renovacion.id == renovacion_id).first()
+    
+    if not renovacion:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+        
+    renovacion.estatus = datos.estatus
+    
+    # Si se aprueba, reactivamos automáticamente la tarjeta del estudiante
+    if datos.estatus == "Aprobada":
+        tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.usuario_id == renovacion.usuario_id).first()
+        if tarjeta:
+            tarjeta.estatus = "Activa"
+            
+    db.commit()
+    return {"mensaje": f"La solicitud fue {datos.estatus.lower()}."}

@@ -32,8 +32,8 @@ body {
     width: 100%;
     max-width: 400px;
     /* Ancho típico de un celular */
-    height: 100vh;
-    max-height: 800px;
+    min-height: 100vh;
+    
     padding: 30px;
     border-radius: 20px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);

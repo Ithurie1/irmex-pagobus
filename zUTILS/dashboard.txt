@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Inicio</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos extra específicos para el dashboard */
+        .header-dashboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 30px;
+        }
+
+        .saldo-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .saldo-cantidad {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--azul-oscuro);
+        }
+
+        .menu-btn {
+            background-color: var(--blanco);
+            border: 2px solid var(--azul-claro);
+            color: var(--azul-oscuro);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .menu-btn:hover {
+            background-color: var(--azul-claro);
+            color: var(--blanco);
+        }
+    </style>
+</head>
+
+<body style="display: flex; justify-content: center; min-height: 100vh; background-color: #f4f7f6; margin: 0; font-family: Arial, sans-serif; padding: 40px 0;">
+
+    <div class="app-container" style="max-width: 400px; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+        
+        <div class="header-dashboard" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px;">
+            
+            <img src="logoitl.png" alt="Logo IrMex" style="width: 50px; height: 50px; border-radius: 50%;">
+            
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="width: 40px; height: 40px; background-color: #ccc; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px;">
+                    👤
+                </div>
+                <span id="badgeVerificacion" style="background-color: #f39c12; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: -8px; z-index: 10; border: 2px solid white; box-shadow: 0px 2px 4px rgba(0,0,0,0.2);">
+                    En revisión
+                </span>
+            </div>
+        </div>
+        
+        <div id="panelBilletera" style="background-color: var(--azul-oscuro); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <h3 style="margin-bottom: 15px; font-size: 18px;">Billetera Virtual / Inspector</h3>
+            
+            <select id="selectorTarjetas" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-size: 16px; border: none; outline: none;">
+                <option value="">Cargando tarjetas...</option>
+            </select>
+
+            <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 5px;">Saldo disponible:</p>
+            <h1 id="saldoMostrado" style="font-size: 40px; margin: 0 0 10px 0; color: #2ecc71;">$ 0.00</h1>
+            
+            <span id="estatusMostrado" style="padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; background-color: rgba(255,255,255,0.2);">
+                Selecciona una tarjeta
+            </span>
+        </div>
+
+        <div style="width: 100%;">
+            <a href="historial.html" class="menu-btn" id="btnHistorial">Historial de Actividad</a>
+            <a href="recarga.html" class="menu-btn" id="btnRecarga">Recarga de Saldo</a>
+            <a href="renovacion.html" class="menu-btn" id="btnRenovacion">Renovar Tarjeta </a>
+            <a href="crud_tarjetas.html" class="menu-btn" id="btnCrudTarjetas">Gestión de tarjetas</a>
+            <a href="verificar_estatus.html" class="menu-btn" id="btnVerificarEstatus">Verificar Estatus de Usuario</a>
+            <a href="#" class="menu-btn" id="btnReportes" onclick="alert('Módulo en construcción - Fase 2')">Reportes de Uso</a>
+            <a href="verificador_documentos.html" class="menu-btn" id="btnVerificarDocs">Verificar Documentos</a>
+            <a href="perfil.html" class="menu-btn">Mi Perfil</a>
+        </div>
+
+        <button onclick="cerrarSesion()" style="margin-top: 30px; background: none; border: none; color: #e74c3c; font-weight: bold; cursor: pointer; font-size: 16px;">Cerrar Sesión</button>
+
+        <a class="enlace-secundario" style="margin-top: auto; padding-top: 20px;">¿Necesitas ayuda? Contactanos</a>
+    </div>
+
+<script>
+        async function cargarDashboard() {
+            // 1. Revisamos si el usuario trae su "gafete" (Token)
+            const token = localStorage.getItem('token');
+            const esEstudiante = localStorage.getItem('es_estudiante'); // Leemos el rol
+            
+            if (!token) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            // APLICAMOS LA MAGIA DE LOS ROLES (MODO SEGURO)
+            if (esEstudiante === 'true') {
+                // Ocultamos las cosas de admin al estudiante (SOLO SI EXISTEN)
+                const btnCrud = document.getElementById('btnCrudTarjetas');
+                if (btnCrud) btnCrud.style.display = 'none';
+                
+                const btnVerificar = document.getElementById('btnVerificarEstatus');
+                if (btnVerificar) btnVerificar.style.display = 'none';
+                
+                const btnDocs = document.getElementById('btnVerificarDocs');
+                if (btnDocs) btnDocs.style.display = 'none';
+            } else { 
+                // <--- AQUÍ EMPIEZA EL BLOQUE QUE MENCIONAS --->
+                // Si es admin, ocultamos Billetera, recargas, historial y RENOVACIÓN
+                const btnHist = document.getElementById('btnHistorial');
+                if (btnHist) btnHist.style.display = 'none';
+                
+                const btnRecarga = document.getElementById('btnRecarga');
+                if (btnRecarga) btnRecarga.style.display = 'none';
+                
+                const panelBill = document.getElementById('panelBilletera');
+                if (panelBill) panelBill.style.display = 'none';
+
+                // NUEVO BOTÓN OCULTO
+                const btnReno = document.getElementById('btnRenovacion');
+                if (btnReno) btnReno.style.display = 'none';
+
+                const badge = document.getElementById('badgeVerificacion');
+                if (badge) badge.style.display = 'none';
+            }
+            try {
+                // 2. Le preguntamos al backend de quién es este token
+                    const token = localStorage.getItem('token');
+                    const response = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const datosUsuario = await response.json();
+                    
+                    // 3. Modificamos el HTML para saludarlo por su nombre real
+                    // Busca en tu HTML dónde dice "Hola, Usuario" o similar y ponle un id="nombreUsuario"
+                    const elementoNombre = document.getElementById('nombreUsuario');
+                    if (elementoNombre) {
+                        // Solo mostramos el primer nombre para que se vea estético
+                        const primerNombre = datosUsuario.nombre.split(' ')[0]; 
+                        elementoNombre.innerText = `Hola, ${primerNombre}`;
+                    }
+                    cargarTarjetasBilletera();
+                } else {
+                    // Si el token es falso o ya expiró (pasó 1 hora)
+                    cerrarSesion();
+                }
+            } catch (error) {
+                console.error("Error al conectar con el servidor", error);
+            }
+        }
+
+        // Función para destruir el token y salir
+        function cerrarSesion() {
+            localStorage.removeItem('token');
+            window.location.href = "index.html";
+        }
+
+        // Ejecutamos la protección apenas se abre la página
+        cargarDashboard();
+
+        // NUEVA FUNCIÓN: Cargar tarjetas en el selector interactivo
+        async function cargarTarjetasBilletera() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const tarjetas = await response.json();
+                    
+                    // Usamos TUS IDs exactos del HTML
+                    const select = document.getElementById('selectorTarjetas'); 
+
+                    select.innerHTML = ''; // Borramos el texto de "Cargando tarjetas..."
+
+                    if (tarjetas.length === 0) {
+                        document.getElementById('saldoMostrado').innerText = "$ 0.00";
+                        document.getElementById('estatusMostrado').innerText = "Sin tarjeta asignada";
+                        select.innerHTML = '<option value="">Sin tarjeta asignada</option>';
+                        return; // Detenemos aquí si no hay tarjetas
+                    }
+
+                    // Llenamos el select con la tarjeta del estudiante
+                    tarjetas.forEach(t => {
+                        const option = document.createElement('option');
+                        option.value = t.tarjeta_id;
+                        option.text = `Tarjeta terminación: ${t.numero_tarjeta.slice(-4)}`;
+                        option.dataset.saldo = t.saldo;
+                        option.dataset.estatus = t.estatus;
+                        select.appendChild(option);
+                    });
+
+                    // Actualizamos los números grandes en pantalla
+                    document.getElementById('saldoMostrado').innerText = `$ ${tarjetas[0].saldo.toFixed(2)}`;
+                    
+                    const spanEstatus = document.getElementById('estatusMostrado');
+                    spanEstatus.innerText = tarjetas[0].estatus;
+
+                    // Le damos color al estatus
+                    if(tarjetas[0].estatus === "Activa") {
+                        spanEstatus.style.backgroundColor = "rgba(46, 204, 113, 0.2)";
+                        spanEstatus.style.color = "#2ecc71";
+                    } else {
+                        spanEstatus.style.backgroundColor = "rgba(231, 76, 60, 0.2)";
+                        spanEstatus.style.color = "#e74c3c";
+                    }
+
+                    // Evento por si en el futuro tienen más de una tarjeta
+                    select.addEventListener('change', (e) => {
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        document.getElementById('saldoMostrado').innerText = `$ ${parseFloat(selectedOption.dataset.saldo).toFixed(2)}`;
+                        spanEstatus.innerText = selectedOption.dataset.estatus;
+                    });
+                }
+            } catch (error) {
+                console.error("Error cargando la billetera:", error);
+            }
+        }
+    </script>
+
+</body>
+
+</html>

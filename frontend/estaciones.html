@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Gestión de Estaciones</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <div class="app-container" style="max-width: 800px;">
+        <div style="margin-bottom: 20px;">
+            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">← Volver al Inicio</a>
+        </div>
+
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Gestión de Estaciones y Rutas</h2>
+
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 30px;">
+            <h3 style="margin-top: 0; color: #333; font-size: 16px;">Registrar Nueva Estación</h3>
+            <form id="formEstacion" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-size: 12px; font-weight: bold;">Nombre de la Estación:</label>
+                    <input type="text" id="nombreEstacion" placeholder="Ej. Estación Delta" style="width: 100%; padding: 8px;" required>
+                </div>
+                <div style="flex: 1; min-width: 150px;">
+                    <label style="font-size: 12px; font-weight: bold;">Tipo:</label>
+                    <select id="tipoEstacion" style="width: 100%; padding: 8px;" required>
+                        <option value="Troncal">Troncal</option>
+                        <option value="Alimentadora">Alimentadora</option>
+                        <option value="Paradero">Paradero</option>
+                    </select>
+                </div>
+                <button type="submit" class="action-btn" style="padding: 9px 20px;">Registrar</button>
+            </form>
+        </div>
+
+        <h3 style="color: #333; font-size: 16px;">Directorio de Estaciones</h3>
+        <div style="overflow-x: auto;">
+            <table class="tabla-datos">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Tipo</th>
+                        <th>Estatus</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaEstaciones">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/static/js/estaciones.js"></script>
+</body>
+</html>

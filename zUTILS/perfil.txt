@@ -84,39 +84,37 @@
                 <input type="password" placeholder="******">
             </div>
 
-            <button type="button" class="btn-principal" style="margin-top: 15px;">Guardar Cambios</button>
+            <button type="button" id="btnGuardar" class="btn-principal" style="display: none; background-color: #2ecc71;" onclick="guardarCambiosPerfil()">Guardar Cambios</button>
         </form>
     </div>
 
 <script>
+        // Función que corre automáticamente al abrir la pantalla para mostrar los datos actuales
         async function cargarDatosPerfil() {
-            // 1. Sacamos el token de la mochila del navegador
             const token = localStorage.getItem('token');
-            
-            // Si no hay token, lo regresamos al login a patadas
             if (!token) {
                 window.location.href = "index.html";
                 return;
             }
 
             try {
-                // 2. Hacemos la petición al backend, enviando el token en la cabecera
                 const response = await fetch('http://127.0.0.1:8000/api/perfil', {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}` // Aquí enseñamos el gafete
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
 
                 if (response.ok) {
                     const datosUsuario = await response.json();
                     
-                    // 3. Pintamos los datos reales en la pantalla
-                    // Asumiendo que le pusiste id="nombrePerfil" e id="correoPerfil" a tus inputs
-                    document.querySelector('input[type="text"]').value = datosUsuario.nombre;
-                    document.querySelector('input[type="email"]').value = datosUsuario.correo;
+                    // Llenamos los campos con la información real de la base de datos
+                    document.getElementById('nombrePerfil').value = datosUsuario.nombre;
+                    document.getElementById('correoPerfil').value = datosUsuario.correo;
+                    
+                    // Si el usuario tiene fecha de nacimiento registrada, la pintamos
+                    if (datosUsuario.fecha_nacimiento) {
+                        document.getElementById('fechaPerfil').value = datosUsuario.fecha_nacimiento;
+                    }
                 } else {
-                    // Si el token caducó o es inválido
                     localStorage.removeItem('token');
                     window.location.href = "index.html";
                 }
@@ -125,7 +123,58 @@
             }
         }
 
-        // Ejecutamos la función apenas cargue la página
+        // FUNCIÓN NUEVA: Quita el candado de los inputs para poder escribir
+        function activarEdicion() {
+            document.getElementById('nombrePerfil').disabled = false;
+            document.getElementById('fechaPerfil').disabled = false;
+            
+            // Alternamos los botones visualmente
+            document.getElementById('btnEditar').style.display = 'none';
+            document.getElementById('btnGuardar').style.display = 'block';
+        }
+
+        // FUNCIÓN NUEVA: Envía los cambios al Backend (PUT)
+        async function guardarCambiosPerfil() {
+            const token = localStorage.getItem('token');
+            const nuevoNombre = document.getElementById('nombrePerfil').value;
+            const nuevaFecha = document.getElementById('fechaPerfil').value;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/perfil', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre: nuevoNombre,
+                        fecha_nacimiento: nuevaFecha
+                    })
+                });
+
+                if (response.ok) {
+                    alert("¡Perfil actualizado con éxito!");
+                    
+                    // Volvemos a bloquear los campos
+                    document.getElementById('nombrePerfil').disabled = true;
+                    document.getElementById('fechaPerfil').disabled = true;
+                    
+                    // Alternamos los botones de regreso
+                    document.getElementById('btnEditar').style.display = 'block';
+                    document.getElementById('btnGuardar').style.display = 'none';
+                    
+                    // Recargamos los datos para asegurar que todo quedó bien
+                    cargarDatosPerfil();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.detail}`);
+                }
+            } catch (error) {
+                alert("Error de conexión al guardar los datos.");
+            }
+        }
+
+        // Inicializamos la pantalla cargando los datos del usuario
         cargarDatosPerfil();
     </script>
 

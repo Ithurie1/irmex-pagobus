@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Renovación de Tarjeta</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f4f7f6;">
+    <div class="app-container" style="max-width: 500px; width: 100%;">
+        <div style="margin-bottom: 20px;">
+            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">← Volver al Inicio</a>
+        </div>
+
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 10px;">Renovación de Tarjeta</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Sube tu comprobante de estudios o INE en formato PDF o imagen (JPG/PNG) para solicitar la renovación de tu tarifa preferencial.</p>
+
+        <form id="formRenovacion" style="background-color: #fff; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 10px; color: #333;">Selecciona tu documento:</label>
+                <input type="file" id="archivoINE" accept=".pdf, image/jpeg, image/png" required style="width: 100%; padding: 10px; border: 1px dashed #ccc; border-radius: 5px; background-color: #f9f9f9;">
+            </div>
+            
+            <button type="submit" class="action-btn" style="width: 100%; padding: 12px; font-size: 16px;">Enviar Solicitud</button>
+        </form>
+        
+        <div id="mensajeEstado" style="display: none; margin-top: 20px; padding: 15px; border-radius: 5px; text-align: center; font-weight: bold;"></div>
+    </div>
+
+    <script src="/static/js/renovacion.js"></script>
+</body>
+</html>

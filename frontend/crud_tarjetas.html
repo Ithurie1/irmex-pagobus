@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Módulo Tarjetas</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="height: auto; padding: 40px 0;">
+
+    <div class="crud-container">
+        <div class="crud-header">
+            <h2>Gestión de Tarjetas</h2>
+            <a href="dashboard.html" class="btn-principal" style="width: auto; padding: 10px 20px; text-decoration: none;">Volver al Menú</a>
+        </div>
+
+        <div class="crud-grid">
+            <div style="background-color: var(--fondo-pantalla); padding: 20px; border-radius: 10px;">
+                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Registrar Tarjeta</h3>
+                <form id="formCrearTarjeta">
+                    <div class="form-group">
+                        <label>Número de Tarjeta (16 dígitos):</label>
+                        <input type="text" id="numTarjeta" minlength="16" maxlength="16" pattern="\d{16}" title="Debe contener exactamente 16 números" placeholder="Ej. 1234567890123456" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Saldo Inicial ($):</label>
+                        <input type="number" id="saldoInicial" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estatus:</label>
+                        <select id="estatusTarjeta" style="width: 100%; padding: 12px; border-radius: 8px;">
+                            <option value="Activa">Activa</option>
+                            <option value="Inactiva">Inactiva</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-principal">Guardar Tarjeta</button>
+                    <p id="msgFormulario" style="margin-top: 10px; font-weight: bold;"></p>
+                </form>
+            </div>
+
+            <div>
+                <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Directorio de Tarjetas</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No. Tarjeta</th>
+                            <th>Saldo</th>
+                            <th>Estatus</th>
+                            <th>Acciones</th>
+                            <th>Vigencia</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaTarjetas">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/crud_tarjetas.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Inicio</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="display: flex; justify-content: center; align-items: flex-start !important; min-height: 100vh; background-color: #f4f7f6; margin: 0; font-family: Arial, sans-serif; padding: 50px 0;">
+
+    <div class="app-container" style="max-width: 400px; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+        
+        <div class="header-dashboard">
+            <img src="/static/logoitl.png" alt="Logo IrMex" style="width: 50px; height: 50px; border-radius: 50%;">
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <img id="fotoPerfilHeader" src="https://via.placeholder.com/40?text=👤" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc; background-color: #fff;">
+                <span id="badgeVerificacion" style="display:none; background-color: #f39c12; color: white; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin-top: -8px; z-index: 10; border: 2px solid white; box-shadow: 0px 2px 4px rgba(0,0,0,0.2);">Cargando...</span>
+            </div>
+        </div>
+
+        <div id="vistaEstudiante">
+            <div id="panelBilletera" style="background-color: var(--azul-oscuro, #2c3e50); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                <h3 style="margin-bottom: 15px; font-size: 18px;">Mi Billetera IrMex</h3>
+                <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 5px;">Saldo disponible:</p>
+                <h1 id="saldoMostrado" style="font-size: 40px; margin: 0 0 15px 0; color: #2ecc71;">$ 0.00</h1>
+                <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
+                    <p style="margin: 0; font-size: 12px; color: #cbd5e1;">Número de Tarjeta</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 id="numeroTarjetaVisible" style="margin: 5px 0; font-family: monospace; font-size: 18px; letter-spacing: 2px;">**** **** **** ----</h3>
+                        <button onclick="toggleTarjeta()" id="btnOjo" style="background: none; border: none; cursor: pointer; font-size: 18px;">👁️</button>
+                    </div>
+                    <p style="margin: 5px 0 0 0; font-size: 11px;" id="estatusTarjetaOjo">Estatus: Cargando...</p>
+                </div>
+            </div>
+
+            <div id="btnMisReportes" style="background-color: #9b59b6; padding: 15px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;" onclick="mostrarPanelReportes()">
+                <h3 style="margin: 0; color: white;">📋 Mis Reportes</h3>
+                <p style="margin: 5px 0 0 0; color: #fdf2e9; font-size: 14px;">Revisa el estado de tus quejas</p>
+            </div>
+            
+            <div id="panelMisReportes" style="display: none; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 15px; border: 2px solid #9b59b6;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #9b59b6; padding-bottom: 10px; margin-bottom: 15px;">
+                    <h3 style="color: #2c3e50; margin: 0;">Historial de Soporte</h3>
+                    <button onclick="cerrarPanelReportes()" style="background: none; border: none; color: #e74c3c; font-weight: bold; cursor: pointer;">Cerrar ✖</button>
+                </div>
+                <div id="contenedorMisReportes"><p>Cargando reportes...</p></div>
+            </div>
+
+            <a href="historial.html" class="menu-btn">Historial de Actividad</a>
+            <a href="recarga.html" class="menu-btn" id="btnRecarga">Recarga de Saldo</a>
+            <a href="renovacion.html" class="menu-btn">Renovar Tarjeta</a>
+        </div>
+
+
+        <div id="vistaAdmin">
+            <div id="moduloBuzonAdmin" style="background-color: #f39c12; padding: 15px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;" onclick="window.location.href='buzon_admin.html'">
+                <h3 style="margin: 0; color: white;">📬 Centro de Soporte</h3>
+                 <p style="margin: 5px 0 0 0; color: #fdf2e9; font-size: 14px;">Auditoría, tickets y reportes de fallas</p>
+            </div>
+
+            <a href="crud_tarjetas.html" class="menu-btn">Gestión de tarjetas</a>
+            <a href="verificar_estatus.html" class="menu-btn">Verificar Estatus de Usuario</a>
+            <a href="reportes.html" class="menu-btn">Reportes de Uso</a>
+            <a href="verificador_documentos.html" class="menu-btn">Verificar Documentos</a>
+        </div>
+
+
+        <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
+            <a href="perfil.html" class="menu-btn" style="margin-top: 10px;">Mi Perfil</a>
+        </div>
+
+        <button onclick="cerrarSesion()" style="margin-top: 30px; background: none; border: none; color: #e74c3c; font-weight: bold; cursor: pointer; font-size: 16px;">Cerrar Sesión</button>
+        <a class="enlace-secundario" style="margin-top: auto; padding-top: 20px; text-align: center; color: gray; cursor: pointer;">¿Necesitas ayuda? Contactanos</a>
+    </div>
+
+    <div id="btnSoporteFlotante" style="display: none; position: fixed; bottom: 20px; right: 20px; background-color: #3498db; color: white; border-radius: 50%; width: 60px; height: 60px; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 24px; z-index: 1000;" onclick="abrirModalSoporte()">💬</div>
+
+    <div id="modalSoporte" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 1001; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+            <h3 style="margin-top: 0; color: #2c3e50;">Contactar a Soporte IrMex</h3>
+            <p style="font-size: 14px; color: #7f8c8d;">¿Tuviste un problema con tu saldo o tarjeta? Escríbenos.</p>
+            
+            <form id="formSoporte" onsubmit="enviarTicket(event)">
+                <label style="font-weight: bold; font-size: 14px;">Asunto:</label>
+                <select id="asuntoSoporte" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc;" required>
+                    <option value="">Selecciona el problema...</option>
+                    <option value="Recarga no reflejada">Mi recarga no se reflejó</option>
+                    <option value="Tarjeta bloqueada">Mi tarjeta aparece bloqueada</option>
+                    <option value="Duda sobre renovación">Dudas sobre mi renovación</option>
+                    <option value="Otro">Otro problema</option>
+                </select>
+
+                <label style="font-weight: bold; font-size: 14px;">Mensaje:</label>
+                <textarea id="mensajeSoporte" rows="4" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; resize: none;" placeholder="Explica tu problema detalladamente..." required></textarea>
+
+                <div style="display: flex; justify-content: space-between;">
+                    <button type="button" onclick="cerrarModalSoporte()" style="padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancelar</button>
+                    <button type="submit" style="padding: 10px 15px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Enviar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

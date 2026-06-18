@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperar Contraseña - IrMex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; margin: 0;">
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-top:0;">¿Olvidaste tu contraseña?</h2>
+        <p style="color: #7f8c8d; font-size: 14px;">Ingresa tu correo institucional o personal asociado a IrMex y te enviaremos un enlace de recuperación.</p>
+        
+        <form id="formRecuperar">
+            <input type="email" id="correoRecuperar" placeholder="tucorreo@ejemplo.com" required style="width: 100%; padding: 10px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+            <button type="submit" id="btnEnviar" style="width: 100%; padding: 10px; background-color: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Enviar enlace de recuperación</button>
+        </form>
+        <br>
+        <a href="index.html" style="color: #3498db; text-decoration: none; font-size: 14px;">← Volver al Login</a>
+    </div>
+
+    <script src="/static/js/recuperar.js"></script>
+</body>
+</html>

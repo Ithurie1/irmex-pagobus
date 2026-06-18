@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador IrMex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body style="background-color: #1a1a1a; color: white; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+
+    <div class="pantalla-validador" id="contenedorPrincipal">
+        <h2 style="color: #3498db; margin-top: 0;">🚌 UNIDAD 15</h2>
+        <p style="font-size: 18px; margin-bottom: 30px;">TARIFA: $10.00</p>
+        
+        <p style="font-size: 14px; color: #888;">Ingresa el N° de Tarjeta a simular:</p>
+        <input type="text" id="inputTarjeta" placeholder="Ej: 1234567890123456" maxlength="16" style="width: 90%; padding: 15px; margin: 20px 0; font-size: 18px; text-align: center; border-radius: 10px; border: none; outline: none;">
+        
+        <button onclick="cobrarPasaje()" style="background-color: #3498db; color: white; border: none; padding: 15px 30px; font-size: 20px; font-weight: bold; border-radius: 10px; cursor: pointer; width: 100%;">PASAR TARJETA</button>
+
+        <div class="mensaje" id="mensajePantalla">ESPERANDO TARJETA...</div>
+        <div id="saldoRestante" style="font-size: 18px; color: #ccc; margin-top: 10px;"></div>
+    </div>
+
+    <script src="/static/js/simulador.js"></script>
+</body>
+</html>

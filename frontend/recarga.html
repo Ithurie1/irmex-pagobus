@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Recarga de Saldo</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
+            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">←
+                Volver al Inicio</a>
+        </div>
+
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Recargar Saldo</h2>
+        <p>Selecciona el monto a recargar a tu tarjeta que termina en <strong id="lblTerminacionRecarga">----</strong></p>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; color: var(--azul-oscuro); font-weight: bold; margin-bottom: 8px;">Monto a recargar ($):</label>
+            <input type="number" id="inputMonto" placeholder="Ej. 150" min="1" step="1" 
+                   style="width: 100%; padding: 12px; border: 2px solid var(--azul-claro); border-radius: 8px; font-size: 18px; outline: none;">
+        </div>
+
+        <div class="form-group">
+            <label>Método de Pago</label>
+            <select style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px;">
+                <option>💳 Tarjeta de Crédito/Débito</option>
+                <option style="display: none;">🏪 Pago en OXXO (Efectivo)</option>
+                <option style="display: none;">📱 Transferencia SPEI</option>
+            </select>
+        </div>
+        <div id="formularioPago" style="background-color: #f8f9fa; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px;">
+            <h4 style="margin-top: 0; color: #2c3e50; margin-bottom: 15px;">💳 Datos de Tarjeta Bancaria</h4>
+            
+            <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 5px;">Número de Tarjeta (16 dígitos)</label>
+            <input type="text" id="ccNumero" placeholder="0000 0000 0000 0000" maxlength="16" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+            
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 5px;">Vencimiento</label>
+                    <input type="text" id="ccVencimiento" placeholder="MM/YY" maxlength="5" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 14px; color: #64748b; margin-bottom: 5px;">CVC / CVV</label>
+                    <input type="password" id="ccCvc" placeholder="123" maxlength="3" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                </div>
+            </div>
+            <p style="font-size: 11px; color: #7f8c8d; margin-top: 15px;">🔒 Transacción encriptada. El código CVC no será almacenado en nuestros servidores.</p>
+        </div>
+       <button type="button" class="btn-principal" style="margin-top: 20px;" onclick="realizarRecarga()">
+    Proceder al Pago
+</button>
+        
+    </div>
+
+<script src="/static/js/recarga.js"></script>
+
+</body>
+
+</html>

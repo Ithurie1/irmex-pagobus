@@ -45,10 +45,11 @@
         <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Recargar Saldo</h2>
         <p>Selecciona el monto a recargar a tu tarjeta que termina en <strong id="terminacionTarjeta">----</strong></p>
 
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; color: var(--azul-oscuro); font-weight: bold; margin-bottom: 8px;">Monto a recargar ($):</label>
-            <input type="number" id="inputMonto" placeholder="Ej. 150" min="1" step="1" 
-                   style="width: 100%; padding: 12px; border: 2px solid var(--azul-claro); border-radius: 8px; font-size: 18px; outline: none;">
+        <div class="grid-montos">
+            <button class="btn-monto" type="button">$ 20.00</button>
+            <button class="btn-monto" type="button">$ 50.00</button>
+            <button class="btn-monto" type="button">$ 100.00</button>
+            <button class="btn-monto" type="button">$ 200.00</button>
         </div>
 
         <div class="form-group">
@@ -96,20 +97,11 @@
         });
 
         // 2. La función para hacer el pago
-       async function realizarRecarga() {
+        async function realizarRecarga() {
             const tarjetaId = localStorage.getItem('tarjeta_seleccionada_id'); 
-            
-            // 1. Leemos el valor del cuadro de texto
-            const valorInput = document.getElementById('inputMonto').value;
-            const montoRecarga = parseFloat(valorInput);
-
-            // 2. Validamos que no metan números negativos o vacíos
-            if (!valorInput || montoRecarga <= 0) {
-                alert("Por favor, ingresa un monto válido mayor a $0.");
-                return;
-            }
-
+            const montoRecarga = 100; // Fijo en 100 para la prueba rápida
             const btn = document.querySelector('.btn-principal');
+            
             btn.innerText = "Procesando pago...";
             btn.disabled = true;
 

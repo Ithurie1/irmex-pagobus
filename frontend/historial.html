@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Historial de Viajes</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <div class="app-container" style="max-width: 600px;">
+       
+        <div style="width: 100%; text-align: left; margin-bottom: 25px; z-index: 100;">
+            <a href="dashboard.html" style="text-decoration: none; color: #3498db; font-weight: bold; font-size: 16px; background-color: #e8f4fd; padding: 10px 15px; border-radius: 8px; display: inline-block;">
+                ← Volver al Inicio
+            </a>
+        </div>
+
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 5px;">Historial de Uso</h2>
+        
+        <p id="tituloTerminacion" style="color: #666; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
+            💳 Tarjeta terminación: **** Cargando...
+        </p>
+
+        <div style="max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <table class="tabla-historial" style="width: 100%; border-collapse: collapse; position: relative;">
+                
+                <thead style="position: sticky; top: 0; background-color: #001f3f; z-index: 10;">
+                    <tr>
+                        <th style="padding: 15px; color: white; white-space: nowrap;">Fecha / Hora</th>
+                        <th style="padding: 15px; color: white;">Tarjeta</th>
+                        <th style="padding: 15px; color: white;">Operación</th>
+                        <th style="padding: 15px; color: white;">Origen - Destino</th>
+                        <th style="padding: 15px; color: white;">Monto</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="tablaHistorial">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="/static/js/historial.js"></script>
+    
+</body>
+</html>

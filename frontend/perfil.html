@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrMex - Mi Perfil</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+    <div class="app-container" style="max-width: 600px;">
+        <a href="dashboard.html" style="text-decoration: none; color: #3498db; font-weight: bold; background-color: #e8f4fd; padding: 10px 15px; border-radius: 8px; display: inline-block; margin-bottom: 20px;">
+            ← Volver al Inicio
+        </a>
+        
+        <h2 style="color: #2c3e50; text-align: center; margin-bottom: 5px;">👤 Mi Perfil</h2>
+        
+        <div class="avatar-container">
+            <img id="imgAvatar" src="https://via.placeholder.com/130?text=Foto" class="avatar">
+            <br>
+            <input type="file" id="inputFoto" class="file-input" accept="image/*">
+            <button class="btn-foto" id="btnCambiarFoto" onclick="document.getElementById('inputFoto').click()">📷 Cambiar Foto</button>
+        </div>
+
+        <h3 style="color: #3498db; font-size: 16px;">Datos Personales</h3>
+        <div class="perfil-card">
+            <div class="dato-fila"><span class="dato-label">Correo:</span> <span class="dato-valor" id="lblCorreo">...</span></div>
+            <div class="dato-fila"><span class="dato-label">Tipo:</span> <span class="dato-valor" id="lblTipo" style="color:#2ecc71;">...</span></div>
+            
+            <div class="dato-fila">
+                <span class="dato-label">Nombre:</span> 
+                <span class="dato-valor txt-display" id="lblNombre">...</span>
+                <input type="text" class="input-edit" id="inNombre">
+            </div>
+            <div class="dato-fila">
+                <span class="dato-label">CURP:</span> 
+                <span class="dato-valor txt-display" id="lblCurp">...</span>
+                <input type="text" class="input-edit" id="inCurp" maxlength="18">
+            </div>
+        </div>
+
+        <h3 style="color: #3498db; font-size: 16px;">Domicilio</h3>
+        <div class="perfil-card">
+            <div class="dato-fila">
+                <span class="dato-label">Calle:</span> 
+                <span class="dato-valor txt-display" id="lblCalle">...</span>
+                <input type="text" class="input-edit" id="inCalle">
+            </div>
+            <div class="dato-fila">
+                <span class="dato-label">Número:</span> 
+                <span class="dato-valor txt-display" id="lblNumero">...</span>
+                <input type="text" class="input-edit" id="inNumero">
+            </div>
+            <div class="dato-fila">
+                <span class="dato-label">Colonia:</span> 
+                <span class="dato-valor txt-display" id="lblColonia">...</span>
+                <input type="text" class="input-edit" id="inColonia">
+            </div>
+            <div class="dato-fila">
+                <span class="dato-label">C.P.:</span> 
+                <span class="dato-valor txt-display" id="lblCp">...</span>
+                <input type="text" class="input-edit" id="inCp" maxlength="5">
+            </div>
+        </div>
+
+        <button class="btn btn-editar" id="btnEditar" onclick="activarEdicion()">✏️ Editar Perfil</button>
+        <button class="btn btn-guardar" id="btnGuardar" onclick="guardarPerfil()">💾 Guardar Cambios</button>
+
+    </div>
+
+    <script src="/static/js/perfil.js"></script>
+</body>
+</html>
