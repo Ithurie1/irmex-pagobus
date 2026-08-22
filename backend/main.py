@@ -644,7 +644,7 @@ def obtener_renovaciones_pendientes(db: Session = Depends(get_db)):
         usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == r.usuario_id).first()
         if usuario:
             # Solo enviamos el nombre del archivo, no la ruta completa por seguridad
-            nombre_archivo = r.archivo_ruta.split("/")[-1] 
+            nombre_archivo = os.path.basename(r.archivo_ruta.replace("\\", "/"))
             
             resultados.append({
                 "id_renovacion": r.id,
