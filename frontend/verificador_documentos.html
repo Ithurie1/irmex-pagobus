@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+    if (localStorage.getItem('rol') === 'estudiante' || localStorage.getItem('es_estudiante') === 'true') {
+        window.location.href = 'dashboard.html';
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IrMex - Verificar Documentos</title>
@@ -8,9 +13,9 @@
 </head>
 <body>
 
-    <div class="app-container" style="max-width: 900px;">
-        <div style="margin-bottom: 20px;">
-            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">← Volver al Inicio</a>
+    <div class="panel-interno">
+        <div class="header-interno">
+            <a href="dashboard.html" class="btn-regresar">⬅ Volver al Dashboard</a>
         </div>
 
         <h2 style="color: var(--azul-oscuro); margin-bottom: 20px;">Verificación de Renovaciones</h2>

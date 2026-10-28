@@ -19,9 +19,11 @@ async function cargarTarjetas() {
         tarjetas.forEach(t => {
             const estatusClass = t.estatus === 'Activa' ? 'badge-activa' : 'badge-inactiva';
 
+            const propietarioStr = t.usuario ? t.usuario.nombre : 'Sin asignar';
             const fila = `
                 <tr>
                     <td>${t.numero_tarjeta}</td>
+                    <td>${propietarioStr}</td>
                     <td>$ ${t.saldo}.00</td>
                     <td class="${estatusClass}">${t.estatus}</td>
                     <td style="font-weight: bold; color: #2c3e50;">${t.fecha_expiracion}</td>
@@ -29,8 +31,8 @@ async function cargarTarjetas() {
                         <button class="btn-modificar" onclick="cambiarEstatus(${t.tarjeta_id}, '${t.estatus}')">Bloquear</button>
                         <button style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;" onclick="ajustarVigencia(${t.tarjeta_id})">🗓️ Ajustar Vigencia</button>
                         <button class="btn-eliminar" onclick="borrarTarjeta(${t.tarjeta_id})">Borrar</button>
+                        <button style="background-color: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="recargaEmergencia(${t.tarjeta_id})">💰 Recarga Manual</button>
                     </td>
-                    <button style="background-color: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="recargaEmergencia(${t.tarjeta_id})">💰 Recarga Manual</button>
                 </tr>
             `;
             tbody.innerHTML += fila;
@@ -82,7 +84,11 @@ async function borrarTarjeta(id) {
             cargarTarjetas();
         } else {
             const error = await response.json();
-            alert("🚨 ALERTA DE SEGURIDAD: " + error.detail);
+            if (response.status === 400) {
+                alert(error.detail);
+            } else {
+                alert("🚨 ALERTA DE SEGURIDAD: " + error.detail);
+            }
         }
     } catch (error) {
         console.error(error);
@@ -159,6 +165,7 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
     const num = document.getElementById('numTarjeta').value;
     const saldo = document.getElementById('saldoInicial').value;
     const estatus = document.getElementById('estatusTarjeta').value;
+    const usuarioId = document.getElementById('selectUsuario').value;
     const msg = document.getElementById('msgFormulario');
 
     msg.style.color = "blue";
@@ -168,7 +175,12 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
         const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ numero_tarjeta: num, saldo: parseInt(saldo), estatus: estatus })
+            body: JSON.stringify({ 
+                numero_tarjeta: num, 
+                saldo: parseInt(saldo), 
+                estatus: estatus,
+                usuario_id: usuarioId ? parseInt(usuarioId) : null
+            })
         });
 
         if (response.ok) {
@@ -178,8 +190,12 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
             cargarTarjetas();
         } else {
             const errorData = await response.json();
-            msg.style.color = "red";
-            msg.innerText = errorData.detail;
+            msg.innerText = "";
+            if (response.status === 400) {
+                alert(errorData.detail);
+            } else {
+                alert("Error: " + errorData.detail);
+            }
         }
     } catch (error) {
         msg.style.color = "red";
@@ -188,5 +204,23 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
     setTimeout(() => { msg.innerText = ""; }, 3000);
 });
 
+// Cargar select de estudiantes
+async function cargarEstudiantes() {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/estudiantes');
+        const estudiantes = await response.json();
+        const select = document.getElementById('selectUsuario');
+        select.innerHTML = '<option value="">-- Sin asignar --</option>';
+        estudiantes.forEach(est => {
+            select.innerHTML += `<option value="${est.id}">${est.nombre}</option>`;
+        });
+    } catch (error) {
+        console.error("Error cargando estudiantes", error);
+    }
+}
+
 // Ejecutar la carga al abrir la página
-cargarTarjetas();
+document.addEventListener('DOMContentLoaded', () => {
+    cargarEstudiantes();
+    cargarTarjetas();
+});

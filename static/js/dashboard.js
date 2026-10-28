@@ -22,6 +22,7 @@ function toggleTarjeta() {
 async function cargarDashboard() {
     const token = localStorage.getItem('token');
     const esEstudiante = localStorage.getItem('es_estudiante');
+    const rol = localStorage.getItem('rol');
 
     if (!token) {
         window.location.href = "index.html";
@@ -29,19 +30,47 @@ async function cargarDashboard() {
     }
 
     // 1. MOSTRAR LA INTERFAZ INSTANTÁNEAMENTE (Sin esperar al backend)
-    if (esEstudiante === 'true') {
+    if (rol === 'estudiante' || esEstudiante === 'true') {
         document.getElementById('vistaEstudiante').style.display = 'flex';
         document.getElementById('badgeVerificacion').style.display = 'inline-block';
         document.getElementById('btnSoporteFlotante').style.display = 'flex';
     } else {
         document.getElementById('vistaAdmin').style.display = 'flex';
+        
+        // Desbloquear Gestor de Privilegios para superadmin
+        const correo = localStorage.getItem('correo');
+        if ((rol && rol.toLowerCase() === 'superadmin') || correo === 'admin@irmex.com') {
+            const tarjetaPrivilegios = document.getElementById('tarjetaPrivilegios');
+            if (tarjetaPrivilegios) tarjetaPrivilegios.style.display = 'flex';
+        }
     }
 
     // 2. PEDIR LOS DATOS AL SERVIDOR EN SEGUNDO PLANO
-    if (esEstudiante === 'true') {
+    if (rol === 'estudiante' || esEstudiante === 'true') {
         cargarTarjetasBilletera();
+    } else {
+        cargarNotificacionesAdmin();
     }
     cargarMiniPerfil();
+}
+
+async function cargarNotificacionesAdmin() {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets/no-leidos');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.no_leidos > 0) {
+                const badge = document.getElementById('badgeSoporte');
+                if (badge) {
+                    badge.innerText = data.no_leidos;
+                    badge.className = 'badge-notificacion';
+                    badge.style.display = 'inline-block';
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error al cargar notificaciones:", error);
+    }
 }
 
 async function cargarTarjetasBilletera() {
@@ -55,6 +84,7 @@ async function cargarTarjetasBilletera() {
             const tarjetas = await response.json();
             const badgeSuperior = document.getElementById('badgeVerificacion');
             const btnRecarga = document.getElementById('btnRecarga');
+            const btnPerfil = document.getElementById('btnPerfil');
 
             if (tarjetas.length === 0) {
                 document.getElementById('saldoMostrado').innerText = "$ 0.00";
@@ -62,6 +92,11 @@ async function cargarTarjetasBilletera() {
                 badgeSuperior.innerText = "Sin tarjeta ⚠️";
                 badgeSuperior.style.backgroundColor = "#e74c3c";
                 btnRecarga.style.display = 'none';
+                if (btnPerfil) {
+                    btnPerfil.innerHTML = "⚠️ Completar Perfil";
+                    btnPerfil.style.backgroundColor = "#e74c3c";
+                    btnPerfil.style.color = "white";
+                }
                 return;
             }
 
@@ -97,11 +132,21 @@ async function cargarTarjetasBilletera() {
                 badgeSuperior.style.backgroundColor = "#2ecc71";
                 badgeSuperior.style.border = "2px solid #2ecc71";
                 btnRecarga.style.display = 'block';
+                if (btnPerfil) {
+                    btnPerfil.innerHTML = "👤 Mi Perfil";
+                    btnPerfil.style.backgroundColor = ""; // Default CSS
+                    btnPerfil.style.color = "";
+                }
             } else {
                 badgeSuperior.innerText = "Sin verificar ⚠️";
                 badgeSuperior.style.backgroundColor = "#f39c12";
                 badgeSuperior.style.border = "2px solid white";
                 btnRecarga.style.display = 'none';
+                if (btnPerfil) {
+                    btnPerfil.innerHTML = "⚠️ Completar Perfil";
+                    btnPerfil.style.backgroundColor = "#f39c12";
+                    btnPerfil.style.color = "white";
+                }
             }
         }
     } catch (error) {
@@ -142,14 +187,23 @@ async function enviarTicket(event) {
     const asunto = document.getElementById('asuntoSoporte').value;
     const mensaje = document.getElementById('mensajeSoporte').value;
     const token = localStorage.getItem('token');
+    const inputEvidencia = document.getElementById('evidenciaTicket');
 
     if (!token) return;
+
+    const formData = new FormData();
+    formData.append('asunto', asunto);
+    formData.append('mensaje', mensaje);
+    
+    if (inputEvidencia && inputEvidencia.files[0]) {
+        formData.append('evidencia', inputEvidencia.files[0]);
+    }
 
     try {
         const response = await fetch('http://127.0.0.1:8000/api/soporte/ticket', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ asunto: asunto, mensaje: mensaje })
+            headers: { 'Authorization': `Bearer ${token}` }, // Eliminar Content-Type para FormData
+            body: formData
         });
 
         if (response.ok) {
@@ -215,3 +269,4 @@ async function cargarMisReportes() {
 }
 
 document.addEventListener('DOMContentLoaded', cargarDashboard);
+

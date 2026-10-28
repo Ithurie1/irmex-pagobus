@@ -94,7 +94,7 @@ async function cargarLogs() {
             const tbody = document.getElementById('tablaLogs');
 
             if (logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="padding: 15px; text-align: center; color: #7f8c8d;">No hay accesos registrados aún.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: #7f8c8d;">No hay accesos registrados aún.</td></tr>';
                 return;
             }
 
@@ -103,17 +103,23 @@ async function cargarLogs() {
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid #eee;">
                         <td style="padding: 12px 15px; color: #34495e; font-weight: bold;">${log.correo}</td>
-                        <td style="padding: 12px 15px; color: #7f8c8d; font-family: monospace;">${log.fecha_hora}</td>
+                        <td style="padding: 12px 15px;">${log.rol || 'N/A'}</td>
+                        <td style="padding: 12px 15px; color: #7f8c8d; font-family: monospace;">${log.fecha_hora || log.fecha || ''}</td>
                     </tr>
                 `;
             });
         }
     } catch (error) {
         console.error("Error al cargar los logs:", error);
-        document.getElementById('tablaLogs').innerHTML = '<tr><td colspan="2" style="padding: 15px; text-align: center; color: red;">Error al cargar bitácora.</td></tr>';
+        document.getElementById('tablaLogs').innerHTML = '<tr><td colspan="3" style="padding: 15px; text-align: center; color: red;">Error al cargar bitácora.</td></tr>';
     }
 }
 
 // Arrancar todo al abrir la página
 cargarReportes();
 cargarLogs();
+
+function actualizarEnlaceVentas() {
+    const filtro = document.getElementById('filtroVentas').value;
+    document.getElementById('btnExportarVentas').href = http://127.0.0.1:8000/api/admin/finanzas/exportar?filtro=;
+}

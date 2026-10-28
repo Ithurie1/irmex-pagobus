@@ -3,34 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IrMex - Verificar Estatus</title>
+    <title>IrMex - Gestor de Estudiantes</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .search-bar {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="app-container" style="max-width: 500px;">
-        <div style="width: 100%; text-align: left; margin-bottom: 20px;">
-            <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold;">← Volver al Inicio</a>
+    <div class="panel-interno">
+        <div class="header-interno">
+            <a href="dashboard.html" class="btn-regresar">⬅ Volver al Dashboard</a>
         </div>
 
-        <h2 style="color: var(--azul-oscuro); margin-bottom: 5px;">Verificar Estudiante</h2>
-        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Ingrese el correo institucional para revisar la vigencia de su Pagobus.</p>
+        <h2 style="color: var(--azul-oscuro); margin-bottom: 5px;">Directorio de Estudiantes</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Busca y administra a los estudiantes y sus tarjetas vinculadas.</p>
 
-        <form id="formVerificar" style="display: flex; gap: 10px; margin-bottom: 30px;">
-            <input type="email" id="correoBusqueda" placeholder="ejemplo@alumno.edu.mx" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;" required>
-            <button type="submit" class="action-btn" style="padding: 10px 20px;">Buscar</button>
-        </form>
+        <input type="text" id="buscador" class="search-bar" placeholder="Buscar por nombre o correo...">
 
-        <div id="resultadoBusqueda" style="display: none; background-color: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd;">
-            <h3 style="margin-top: 0; color: #333; font-size: 16px;">Resultado del Sistema:</h3>
-            <p><strong>Nombre:</strong> <span id="resNombre">---</span></p>
-            <p><strong>Correo:</strong> <span id="resCorreo">---</span></p>
-            <p style="margin-bottom: 0;"><strong>Estatus de Tarjeta:</strong> <span id="resEstatus" style="font-weight: bold; padding: 3px 8px; border-radius: 4px;">---</span></p>
-
-            <button id="btnAsignarNueva" class="action-btn" style="display: none; background-color: #f39c12; width: 100%;">Asignar Tarjeta de Reposición</button>
+        <div style="overflow-x: auto;">
+            <table id="tablaEstudiantes">
+                <thead>
+                    <tr>
+                        <th>Matrícula/ID</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Estatus Tarjeta</th>
+                        <th>Nivel de Acceso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaUsuarios">
+                    <!-- Llenado dinámicamente -->
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <script src="/static/js/verificar_estatus.js"></script>
+    <script src="/static/js/verificar_estatus.js?v=999"></script>
 </body>
 </html>

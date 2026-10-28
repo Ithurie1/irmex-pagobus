@@ -1,48 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+    if (localStorage.getItem('rol') === 'estudiante' || localStorage.getItem('es_estudiante') === 'true') {
+        window.location.href = 'dashboard.html';
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buzón de Soporte - IrMex Admin</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=6">
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px;">
-
-    <div class="header">
-        <h2 style="margin:0;">Centro de Soporte y Auditoría IrMex</h2>
-        <button onclick="window.location.href='dashboard.html'" style="padding: 10px; cursor:pointer; background:#f39c12; color:white; border:none; border-radius:5px; font-weight:bold;">Volver al Menu</button>
-    </div>
-
-    <div class="buzon-container">
-        <div class="sidebar-buzon">
-            <button onclick="cargarTicketsBuzon('todos')">📥 Bandeja de Entrada</button>
-            <button onclick="cargarTicketsBuzon('importantes')">⭐ Destacados</button>
+    <div class="panel-interno">
+        <div class="header-interno">
+            <a href="dashboard.html" class="btn-regresar">⬅ Volver al Dashboard</a>
+        </div>
+        <div class="header" style="margin-bottom: 20px;">
+            <h2 style="margin:0; color: #2c3e50;">Centro de Soporte y Auditoría IrMex</h2>
         </div>
 
-        <div id="listaTickets">
-            <p>Cargando mensajes...</p>
-        </div>
-    </div>
+        <div class="buzon-gmail-layout">
+            <div class="buzon-sidebar" id="folderMenu">
+                <button class="active" onclick="cambiarCarpeta('bandeja', this)">📥 Bandeja de Entrada</button>
+                <button onclick="cambiarCarpeta('destacados', this)">⭐ Destacados</button>
+                <button onclick="cambiarCarpeta('leidos', this)">👀 Leídos</button>
+            </div>
 
-    <div id="modalResponder" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000;">
-        <div style="background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-            <h3 id="modalAsunto" style="margin-top: 0; color: #2c3e50;">Asunto</h3>
-            
-            <p style="margin-bottom: 5px; color: #7f8c8d; font-size: 14px;">Mensaje del estudiante:</p>
-            <div id="modalMensaje" style="background: #f4f7f6; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #3498db; min-height: 60px;"></div>
-            
-            <p style="margin-bottom: 5px; color: #7f8c8d; font-size: 14px;">Escribe tu respuesta:</p>
-            <textarea id="textoRespuesta" rows="5" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; resize: none;" placeholder="Hola, tu caso ya fue revisado..."></textarea>
-            
-            <input type="hidden" id="ticketIdOculto">
-            
-            <div style="margin-top: 20px; display: flex; justify-content: space-between;">
-                <button onclick="cerrarModalResponder()" style="padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancelar</button>
-                <button onclick="enviarRespuesta()" style="padding: 10px 15px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Enviar Respuesta</button>
+            <div class="buzon-list-container">
+                <div id="listaTickets" style="display: flex; flex-direction: column;">
+                    <p style="padding: 20px; color: gray;">Cargando mensajes...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="modalResponder" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000;">
+            <div style="background: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 id="modalAsunto" style="margin: 0; color: #202124;">Asunto</h3>
+                    <button onclick="cerrarModalResponder()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #5f6368;">✖</button>
+                </div>
+                
+                <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; background: #3498db; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px;" id="modalAvatar">A</div>
+                    <div>
+                        <strong id="modalRemitente" style="color: #202124; display: block;">Remitente</strong>
+                        <span id="modalCorreo" style="color: #5f6368; font-size: 13px;">correo@ejemplo.com</span>
+                    </div>
+                </div>
+
+                <div id="modalMensaje" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #202124; min-height: 80px; white-space: pre-wrap; font-size: 14px;"></div>
+                
+                <p style="margin-bottom: 5px; color: #5f6368; font-size: 14px;">Escribe tu respuesta:</p>
+                <textarea id="textoRespuesta" rows="5" style="width: 100%; padding: 12px; box-sizing: border-box; border-radius: 8px; border: 1px solid #dadce0; resize: none; font-family: inherit;" placeholder="Escribe aquí para responder al estudiante..."></textarea>
+                
+                <input type="hidden" id="ticketIdOculto">
+                
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button onclick="enviarRespuesta()" style="padding: 10px 24px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; font-size: 14px;">Enviar</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/buzon_admin.js"></script>
+    <div id="modalLectura" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:#fff; padding:30px; border-radius:8px; width:90%; max-width:600px;">
+            <h2 id="modalLecturaAsunto" style="margin-top:0;"></h2>
+            <p><strong>De:</strong> <span id="modalLecturaRemitente"></span> (<span id="modalLecturaCorreo"></span>)</p>
+            <p><strong>Fecha:</strong> <span id="modalLecturaFecha"></span></p>
+            <hr>
+            <p id="modalCuerpo" style="margin-top:20px; white-space:pre-wrap;"></p>
+            <div id="modalEvidenciaContainer" style="display:none; margin-top:15px; text-align:center; background:#f4f4f4; padding:10px; border-radius:8px;">
+                <img id="modalEvidencia" src="" style="max-width:100%; max-height:300px; object-fit:contain;">
+            </div>
+            <div style="text-align:right; margin-top:20px;">
+                <button onclick="document.getElementById('modalLectura').style.display='none'" class="btn-regresar">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/buzon_admin.js?v=7"></script>
 </body>
 </html>

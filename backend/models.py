@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date, DateTime, Boolean, Text
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime 
 
 Base = declarative_base()
@@ -23,6 +23,10 @@ class Usuario(Base):
     colonia = Column(String(100), nullable=True)
     cp = Column(String(10), nullable=True)
     foto_perfil = Column(String, nullable=True)
+    rol = Column(String, default="estudiante")
+    estatus = Column(String, default="activo")
+    
+    tarjetas = relationship("Tarjeta", back_populates="usuario")
 class Tarjeta(Base):
     __tablename__ = "tarjetas"
 
@@ -33,6 +37,8 @@ class Tarjeta(Base):
     # NUEVO: Identificador del dueño de la tarjeta
     usuario_id = Column(Integer, ForeignKey("usuarios.usuario_id"), nullable=True) 
     fecha_expiracion = Column(Date, nullable=True)
+    
+    usuario = relationship("Usuario", back_populates="tarjetas")
 
 class Movimiento(Base):
     __tablename__ = "movimientos"
@@ -107,3 +113,4 @@ class TicketSoporte(Base):
     transaccion_id = Column(Integer, ForeignKey("transacciones.id"), nullable=True)
     fecha_creacion = Column(DateTime, default=datetime.utcnow)
     respuesta = Column(Text, nullable=True)
+    evidencia_url = Column(String, nullable=True)

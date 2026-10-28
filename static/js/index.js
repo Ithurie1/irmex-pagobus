@@ -25,12 +25,17 @@ document.getElementById('loginForm').addEventListener('submit', async function (
             localStorage.setItem('token', data.access_token);
             localStorage.setItem('correo', correo);
             localStorage.setItem('es_estudiante', data.es_estudiante);
-            window.location.href = "dashboard.html";
+            localStorage.setItem('rol', data.rol || (data.es_estudiante ? 'estudiante' : 'admin'));
+            
+            const rol = localStorage.getItem('rol');
+            const targetUrl = "dashboard.html";
+
+            window.location.href = targetUrl;
             mensajeElemento.style.color = "green";
             mensajeElemento.innerText = `¡Bienvenido de vuelta, ${data.nombre}! Entrando...`;
 
             setTimeout(() => {
-                window.location.href = "dashboard.html";
+                window.location.href = targetUrl;
             }, 1000);
         } else {
             mensajeElemento.style.color = "red";

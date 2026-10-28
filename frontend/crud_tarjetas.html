@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+    if (localStorage.getItem('rol') === 'estudiante' || localStorage.getItem('es_estudiante') === 'true') {
+        window.location.href = 'dashboard.html';
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IrMex - Módulo Tarjetas</title>
@@ -8,16 +13,24 @@
 </head>
 <body style="height: auto; padding: 40px 0;">
 
-    <div class="crud-container">
+    <div class="panel-interno">
+        <div class="header-interno">
+            <a href="dashboard.html" class="btn-regresar">⬅ Volver al Dashboard</a>
+        </div>
         <div class="crud-header">
             <h2>Gestión de Tarjetas</h2>
-            <a href="dashboard.html" class="btn-principal" style="width: auto; padding: 10px 20px; text-decoration: none;">Volver al Menú</a>
         </div>
 
         <div class="crud-grid">
             <div style="background-color: var(--fondo-pantalla); padding: 20px; border-radius: 10px;">
                 <h3 style="margin-bottom: 15px; color: var(--azul-oscuro);">Registrar Tarjeta</h3>
                 <form id="formCrearTarjeta">
+                    <div class="form-group">
+                        <label>Asignar a Estudiante:</label>
+                        <select id="selectUsuario" style="width: 100%; padding: 12px; border-radius: 8px;">
+                            <option value="">-- Sin asignar --</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Número de Tarjeta (16 dígitos):</label>
                         <input type="text" id="numTarjeta" minlength="16" maxlength="16" pattern="\d{16}" title="Debe contener exactamente 16 números" placeholder="Ej. 1234567890123456" required>
@@ -44,10 +57,11 @@
                     <thead>
                         <tr>
                             <th>No. Tarjeta</th>
+                            <th>Propietario / Estudiante</th>
                             <th>Saldo</th>
                             <th>Estatus</th>
-                            <th>Acciones</th>
                             <th>Vigencia</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tablaTarjetas">
@@ -57,6 +71,6 @@
         </div>
     </div>
 
-    <script src="/static/js/crud_tarjetas.js"></script>
+    <script src="/static/js/crud_tarjetas.js?v=2"></script>
 </body>
 </html>

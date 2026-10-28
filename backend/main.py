@@ -10,7 +10,8 @@ sys.path.insert(0, BASE_DIR)
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.exc import IntegrityError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, date
 # pyrefly: ignore [missing-import]
@@ -21,9 +22,9 @@ import models, schemas
 from database import engine, SessionLocal
 import random
 from pydantic import BaseModel
-from fastapi import File, UploadFile
+from fastapi import File, UploadFile, Form
 import shutil
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy import func
 from typing import Optional
 
@@ -171,6 +172,9 @@ def servir_estaciones(): return FileResponse(os.path.join(FRONTEND_DIR, "estacio
 @app.get("/simulador.html")
 def servir_simulador(): return FileResponse(os.path.join(FRONTEND_DIR, "simulador.html"))
 
+@app.get("/admin/privilegios")
+def servir_privilegios(): return FileResponse(os.path.join(FRONTEND_DIR, "gestor_privilegios.html"))
+
 @app.post("/api/registro")
 def registrar_usuario(usuario: schemas.UsuarioCrear, db: Session = Depends(get_db)):
     db_usuario = db.query(models.Usuario).filter(models.Usuario.correo == usuario.correo).first()
@@ -243,7 +247,8 @@ def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db))
         "mensaje": "Inicio de sesión exitoso", 
         "usuario_id": db_usuario.usuario_id, 
         "nombre": db_usuario.nombre,
-        "es_estudiante": db_usuario.es_estudiante  # <-- NUEVO: Mandamos el rol
+        "es_estudiante": db_usuario.es_estudiante,
+        "rol": db_usuario.rol
     }
 
 
@@ -252,16 +257,39 @@ def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db))
 # =========================================================
 @app.get("/api/logs")
 def obtener_logs_acceso(db: Session = Depends(get_db)):
-    # Traemos los últimos 50 accesos, ordenados del más nuevo al más viejo
-    logs = db.query(models.LogAcceso).order_by(models.LogAcceso.fecha_hora.desc()).limit(50).all()
+    # Traemos los últimos 50 accesos, ordenados del más nuevo al más viejo, e incluimos el usuario
+    logs = db.query(models.LogAcceso, models.Usuario).outerjoin(
+        models.Usuario, models.LogAcceso.correo_usuario == models.Usuario.correo
+    ).order_by(models.LogAcceso.fecha_hora.desc()).limit(50).all()
     
     return [
         {
             "correo": log.correo_usuario,
-            "fecha_hora": log.fecha_hora.strftime("%d/%m/%Y %H:%M:%S")
+            "fecha_hora": log.fecha_hora.strftime("%d/%m/%Y %H:%M:%S"),
+            "rol": usuario.rol if usuario else "estudiante"
         }
-        for log in logs
+        for log, usuario in logs
     ]
+
+@app.get("/api/admin/auditoria/exportar")
+def exportar_auditoria(db: Session = Depends(get_db)):
+    import csv
+    import io
+    logs = db.query(models.LogAcceso, models.Usuario).outerjoin(
+        models.Usuario, models.LogAcceso.correo_usuario == models.Usuario.correo
+    ).order_by(models.LogAcceso.fecha_hora.desc()).all()
+    
+    stream = io.StringIO()
+    writer = csv.writer(stream)
+    writer.writerow(["Correo", "Fecha Hora", "Rol"])
+    
+    for log, usuario in logs:
+        rol = usuario.rol if usuario else "estudiante"
+        writer.writerow([log.correo_usuario, log.fecha_hora.strftime("%d/%m/%Y %H:%M:%S"), rol])
+        
+    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=auditoria_irmex.csv"
+    return response
 
 # =========================================================
 # MÓDULO DE RECUPERACIÓN DE CONTRASEÑA (RF_03)
@@ -343,6 +371,49 @@ def actualizar_perfil(datos: dict, usuario_actual: models.Usuario = Depends(obte
     db.refresh(usuario_actual)
     return {"mensaje": "Perfil actualizado con éxito"}
 
+@app.get("/api/estudiantes")
+def obtener_estudiantes(db: Session = Depends(get_db)):
+    estudiantes = db.query(models.Usuario).filter(models.Usuario.es_estudiante == True).all()
+    return [{"id": est.usuario_id, "nombre": est.nombre, "correo": est.correo} for est in estudiantes]
+
+# --- NUEVAS RUTAS: GESTOR DE USUARIOS COMPLETOS ---
+@app.get("/api/usuarios_completos")
+def obtener_usuarios_completos(db: Session = Depends(get_db)):
+    usuarios = db.query(models.Usuario).options(joinedload(models.Usuario.tarjetas)).all()
+    resultado = []
+    for u in usuarios:
+        if u.tarjetas:
+            tarjeta = next((t for t in u.tarjetas if t.estatus == 'Activa'), u.tarjetas[0])
+            estatus_tarjeta = tarjeta.estatus
+        else:
+            estatus_tarjeta = "Sin Tarjeta"
+            
+        resultado.append({
+            "id": u.usuario_id,
+            "nombre": u.nombre,
+            "correo": u.correo,
+            "estatus_tarjeta": estatus_tarjeta,
+            "rol": u.rol
+        })
+    return resultado
+
+@app.delete("/api/usuarios/{id}")
+def eliminar_usuario_completo(id: int, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+    usuario.estatus = "inactivo"
+    
+    # Soft delete también para sus tarjetas
+    tarjetas = db.query(models.Tarjeta).filter(models.Tarjeta.usuario_id == id).all()
+    for t in tarjetas:
+        t.estatus = "inactiva"
+        
+    db.commit()
+    
+    return {"mensaje": "Usuario y tarjetas marcados como inactivos (Soft Delete aplicado)."}
+
 # --- RUTAS DEL CRUD DE TARJETAS ---
 
 @app.post("/api/tarjetas", response_model=schemas.TarjetaRespuesta)
@@ -350,11 +421,20 @@ def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
     db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.numero_tarjeta == tarjeta.numero_tarjeta).first()
     if db_tarjeta:
         raise HTTPException(status_code=400, detail="Este número de tarjeta ya está registrado")
+        
+    if tarjeta.usuario_id:
+        tarjeta_activa = db.query(models.Tarjeta).filter(
+            models.Tarjeta.usuario_id == tarjeta.usuario_id,
+            models.Tarjeta.estatus == "Activa"
+        ).first()
+        if tarjeta_activa:
+            raise HTTPException(status_code=400, detail="Este estudiante ya tiene una tarjeta registrada en el sistema.")
     
     nueva_tarjeta = models.Tarjeta(
         numero_tarjeta=tarjeta.numero_tarjeta,
         saldo=tarjeta.saldo,
-        estatus=tarjeta.estatus
+        estatus=tarjeta.estatus,
+        usuario_id=tarjeta.usuario_id
     )
     db.add(nueva_tarjeta)
     db.commit()
@@ -364,17 +444,22 @@ def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
 # 1. Modificamos el GET para que devuelva la vigencia
 @app.get("/api/tarjetas")
 def obtener_tarjetas(db: Session = Depends(get_db)):
-    tarjetas = db.query(models.Tarjeta).all()
+    tarjetas = db.query(models.Tarjeta).options(joinedload(models.Tarjeta.usuario)).all()
     resultados = []
     for t in tarjetas:
         # Formateamos la fecha si existe, si no, ponemos un aviso
         fecha_str = t.fecha_expiracion.strftime("%d/%m/%Y") if t.fecha_expiracion else "Sin vigencia"
+        
+        dueno = f"{t.usuario.nombre} ({t.usuario.correo})" if t.usuario else "Sin asignar"
+                
         resultados.append({
             "tarjeta_id": t.tarjeta_id,
             "numero_tarjeta": t.numero_tarjeta,
             "saldo": t.saldo,
             "estatus": t.estatus,
-            "fecha_expiracion": fecha_str # <-- El nuevo dato
+            "fecha_expiracion": fecha_str,
+            "propietario": dueno,
+            "usuario": {"nombre": t.usuario.nombre} if t.usuario else None
         })
     return resultados
 
@@ -415,9 +500,9 @@ def eliminar_tarjeta(tarjeta_id: int, db: Session = Depends(get_db)):
     if not db_tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
     
-    db.delete(db_tarjeta)
+    db_tarjeta.estatus = "Inactiva"
     db.commit()
-    return {"mensaje": "Tarjeta eliminada con éxito"}
+    return {"mensaje": "Tarjeta marcada como Inactiva (Soft Delete aplicado)"}
 
 # RUTA PARA RECARGAR DINERO
 # RUTA PARA RECARGAR DINERO
@@ -813,12 +898,32 @@ class CrearTicket(BaseModel):
 
 # 1. El estudiante envía la falla
 @app.post("/api/soporte/ticket")
-def crear_ticket(datos: CrearTicket, usuario_actual: models.Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
+def crear_ticket(
+    asunto: str = Form(...),
+    mensaje: str = Form(...),
+    transaccion_id: Optional[int] = Form(None),
+    evidencia: Optional[UploadFile] = File(None),
+    usuario_actual: models.Usuario = Depends(obtener_usuario_actual), 
+    db: Session = Depends(get_db)
+):
+    evidencia_url = None
+    if evidencia and evidencia.filename:
+        upload_dir = os.path.join(STATIC_DIR, "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        import uuid
+        ext = evidencia.filename.split('.')[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+        filepath = os.path.join(upload_dir, filename)
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(evidencia.file, buffer)
+        evidencia_url = f"/static/uploads/{filename}"
+
     nuevo_ticket = models.TicketSoporte(
         usuario_id=usuario_actual.usuario_id,
-        asunto=datos.asunto,
-        mensaje=datos.mensaje,
-        transaccion_id=datos.transaccion_id
+        asunto=asunto,
+        mensaje=mensaje,
+        transaccion_id=transaccion_id,
+        evidencia_url=evidencia_url
     )
     db.add(nuevo_ticket)
     db.commit()
@@ -827,11 +932,33 @@ def crear_ticket(datos: CrearTicket, usuario_actual: models.Usuario = Depends(ob
 # 2. El Administrador lee el buzón completo
 @app.get("/api/admin/tickets")
 def listar_tickets(db: Session = Depends(get_db)):
-    # Cambiamos order_style por order_by
-    return db.query(models.TicketSoporte).order_by(
+    resultados = db.query(models.TicketSoporte, models.Usuario).join(
+        models.Usuario, models.TicketSoporte.usuario_id == models.Usuario.usuario_id
+    ).order_by(
         models.TicketSoporte.es_importante.desc(), 
         models.TicketSoporte.fecha_creacion.desc()
     ).all()
+    
+    tickets_formateados = []
+    for ticket, usuario in resultados:
+        tickets_formateados.append({
+            "id": ticket.id,
+            "remitente": usuario.nombre,
+            "correo": usuario.correo,
+            "asunto": ticket.asunto,
+            "mensaje": ticket.mensaje,
+            "fecha_creacion": ticket.fecha_creacion,
+            "revisado": ticket.revisado,
+            "es_importante": ticket.es_importante,
+            "respuesta": ticket.respuesta,
+            "evidencia_url": ticket.evidencia_url
+        })
+    return tickets_formateados
+
+@app.get("/api/admin/tickets/no-leidos")
+def contar_tickets_no_leidos(db: Session = Depends(get_db)):
+    cantidad = db.query(models.TicketSoporte).filter(models.TicketSoporte.revisado == False).count()
+    return {"no_leidos": cantidad}
 
 # 3. El Admin alterna los estados (Marcar como leído o Importante)
 @app.put("/api/admin/tickets/{ticket_id}/acciones")
@@ -906,13 +1033,54 @@ def eliminar_tarjeta_segura(tarjeta_id: int, datos: AccionSegura, db: Session = 
     if not tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
         
+    # Borrado en cascada manual autorizado por el NIP Maestro
+    db.query(models.Movimiento).filter(models.Movimiento.tarjeta_id == tarjeta_id).delete()
+    
+    transacciones = db.query(models.Transaccion).filter(models.Transaccion.tarjeta_id == tarjeta_id).all()
+    for tr in transacciones:
+        db.query(models.TicketSoporte).filter(models.TicketSoporte.transaccion_id == tr.id).delete()
+        db.delete(tr)
+        
     db.delete(tarjeta)
     db.commit()
-    return {"mensaje": "Tarjeta eliminada permanentemente del sistema."}
+    return {"mensaje": "Tarjeta eliminada permanentemente del sistema junto con su historial."}
 
 # Esquema para recibir tu respuesta
 class RespuestaAdmin(BaseModel):
     respuesta: str
+
+# --- RUTAS DE ADMINISTRACIÓN DE TICKETS ---
+
+@app.delete("/api/admin/tickets/{id}")
+def eliminar_ticket(id: int, db: Session = Depends(get_db)):
+    ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket no encontrado")
+        
+    db.delete(ticket)
+    db.commit()
+    return {"mensaje": "Ticket borrado permanentemente."}
+
+@app.put("/api/admin/tickets/{id}/acciones")
+def actualizar_ticket_acciones(id: int, importante: Optional[bool] = None, revisado: Optional[bool] = None, db: Session = Depends(get_db)):
+    ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket no encontrado")
+        
+    if importante is not None: ticket.es_importante = importante
+    if revisado is not None: ticket.revisado = revisado
+    db.commit()
+    return {"mensaje": "Ticket actualizado"}
+
+@app.put("/api/admin/tickets/{id}/leer")
+def marcar_ticket_leido(id: int, db: Session = Depends(get_db)):
+    ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket no encontrado")
+        
+    ticket.revisado = True
+    db.commit()
+    return {"mensaje": "Ticket marcado como leído"}
 
 # 1. Endpoint para que el ADMIN guarde su respuesta
 @app.put("/api/admin/tickets/{ticket_id}/responder")
@@ -931,3 +1099,77 @@ def responder_ticket(ticket_id: int, datos: RespuestaAdmin, db: Session = Depend
 def obtener_mis_tickets(usuario_actual: models.Usuario = Depends(obtener_usuario_actual), db: Session = Depends(get_db)):
     tickets = db.query(models.TicketSoporte).filter(models.TicketSoporte.usuario_id == usuario_actual.usuario_id).order_by(models.TicketSoporte.fecha_creacion.desc()).all()
     return tickets
+
+# =========================================================
+# GESTIÓN DE ROLES DE USUARIOS
+# =========================================================
+NIP_MAESTRO = "2026"
+SUPER_NIP_RAIZ = "9999"
+
+@app.put("/api/usuarios/{usuario_id}/rol")
+def cambiar_rol_usuario(usuario_id: int, datos: schemas.CambioRol, db: Session = Depends(get_db)):
+    usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == usuario_id).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+    if usuario.rol == "superadmin":
+        if datos.nip_proporcionado != SUPER_NIP_RAIZ:
+            raise HTTPException(status_code=403, detail="NIP Raíz Inválido. Operación bloqueada.")
+    else:
+        if datos.nip_proporcionado != NIP_MAESTRO:
+            raise HTTPException(status_code=403, detail="NIP Maestro Inválido. Operación bloqueada.")
+            
+    usuario.rol = datos.nuevo_rol
+    
+    # Retrocompatibilidad para 'es_estudiante'
+    if datos.nuevo_rol == "estudiante":
+        usuario.es_estudiante = True
+    else:
+        usuario.es_estudiante = False
+        
+    db.commit()
+    return {"mensaje": f"Rol actualizado exitosamente a {datos.nuevo_rol}"}
+
+import io
+import csv
+from fastapi.responses import StreamingResponse
+from datetime import timedelta
+
+@app.get("/api/admin/finanzas/exportar")
+def exportar_finanzas(filtro: str = "total", db: Session = Depends(get_db)):
+    # 1. Sincronizar tabla: Usamos Movimiento y filtramos ingresos igual que el Dashboard
+    query = db.query(models.Movimiento).filter(models.Movimiento.tipo.ilike("%Recarga%"))
+    movimientos = query.all()
+    
+    # 2. Filtrado temporal en memoria (porque fecha_hora es un String 'DD/MM/YYYY HH:MM')
+    movimientos_filtrados = []
+    fecha_actual = datetime.now()
+    
+    for m in movimientos:
+        try:
+            # Intentar parsear el formato string
+            fecha_mov = datetime.strptime(m.fecha_hora, "%d/%m/%Y %H:%M")
+        except:
+            # Si falla el parseo, se asume histórico
+            fecha_mov = fecha_actual
+            
+        if filtro == "mensual" and (fecha_actual - fecha_mov).days > 30:
+            continue
+        if filtro == "semanal" and (fecha_actual - fecha_mov).days > 7:
+            continue
+            
+        movimientos_filtrados.append(m)
+        
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Tarjeta_ID", "Monto", "Tipo", "Fecha_Hora"])
+    
+    for m in movimientos_filtrados:
+        writer.writerow([m.id, m.tarjeta_id, m.monto, m.tipo, m.fecha_hora])
+        
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=ventas_irmex_{filtro}.csv"}
+    )

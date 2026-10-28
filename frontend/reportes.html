@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script>
+    if (localStorage.getItem('rol') === 'estudiante' || localStorage.getItem('es_estudiante') === 'true') {
+        window.location.href = 'dashboard.html';
+    }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IrMex - Reportes</title>
@@ -9,11 +14,10 @@
 </head>
 <body style="display: flex; justify-content: center; align-items: flex-start !important; min-height: 100vh; background-color: #f4f7f6; margin: 0; font-family: Arial, sans-serif; padding: 40px 20px;">
 
-    <div class="app-container" style="max-width: 700px; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        
-        <a href="dashboard.html" style="text-decoration: none; color: var(--azul-medio); font-weight: bold; background-color: #e8f4fd; padding: 8px 12px; border-radius: 8px;">
-            ← Volver al Inicio
-        </a>
+    <div class="panel-interno">
+        <div class="header-interno">
+            <a href="dashboard.html" class="btn-regresar">⬅ Volver al Dashboard</a>
+        </div>
         
         <h2 style="color: var(--azul-oscuro); margin-top: 25px; text-align: center;">📊 Dashboard de Administración</h2>
         <p style="text-align: center; color: #666; margin-bottom: 20px;">Métricas en tiempo real y auditoría del sistema.</p>
@@ -25,22 +29,35 @@
         <div class="seccion-admin">
             <h3 style="color: #2c3e50; margin-top: 0; text-align: center;">Flujo Financiero</h3>
             <canvas id="graficaFinanzas" style="max-height: 250px; width: 100%;"></canvas>
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center; justify-content: center;">
+                <select id="filtroVentas" style="padding: 8px; border-radius: 5px; border: 1px solid #ccc;" onchange="actualizarEnlaceVentas()">
+                    <option value="total">Histórico Total</option>
+                    <option value="mensual">Mensual</option>
+                    <option value="semanal">Semanal</option>
+                </select>
+                <a id="btnExportarVentas" href="http://127.0.0.1:8000/api/admin/finanzas/exportar?filtro=total" style="background-color: #27ae60; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold;" target="_blank">📊 Exportar Reporte de Ventas (CSV)</a>
+            </div>
         </div>
 
         <div class="seccion-admin">
             <h3 style="color: #2c3e50; margin-top: 0; margin-bottom: 5px;">🛡️ Auditoría de Accesos</h3>
-            <p style="font-size: 13px; color: #7f8c8d; margin-bottom: 15px;">Registro de los últimos 50 inicios de sesión exitosos.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <p style="font-size: 13px; color: #7f8c8d; margin: 0;">Registro de los últimos 50 inicios de sesión exitosos.</p>
+                <a href="http://127.0.0.1:8000/api/admin/auditoria/exportar" style="background-color: #3498db; color: white; padding: 8px 12px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 13px;" target="_blank">📥 Descargar Historial Completo (CSV)</a>
+            </div>
             
             <div style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
                     <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 5;">
                         <tr>
                             <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Usuario (Correo)</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Rol</th>
                             <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Fecha y Hora</th>
                         </tr>
                     </thead>
                     <tbody id="tablaLogs">
-                        <tr><td colspan="2" style="padding: 15px; text-align: center; color: #7f8c8d;">Cargando bitácora...</td></tr>
+                        <tr><td colspan="3" style="padding: 15px; text-align: center; color: #7f8c8d;">Cargando bitácora...</td></tr>
                     </tbody>
                 </table>
             </div>

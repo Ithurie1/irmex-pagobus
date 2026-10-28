@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Privilegios | IrMex</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Bloqueo para evitar que estudiantes y admins accedan si escriben la URL directa -->
+    <script>
+        const userRol = localStorage.getItem('rol');
+        if (!userRol || userRol !== 'superadmin') {
+            alert('⚠️ ACCESO DENEGADO: Área restringida a Super Administradores.');
+            window.location.href = "index.html";
+        }
+    </script>
+</head>
+<body style="display: flex; justify-content: center; align-items: flex-start !important; min-height: 100vh; background-color: #f4f7f6; margin: 0; font-family: Arial, sans-serif; padding: 50px 0;">
+
+    <div class="app-container" style="max-width: 100%; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+        
+        <!-- Botón de regreso estandarizado -->
+        <div style="margin-bottom: 30px;">
+            <a href="/dashboard.html" style="background-color: #e74c3c; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">⬅ Volver al Dashboard</a>
+        </div>
+
+        <div class="seccion-admin">
+            <h2>🛡️ Control de Privilegios</h2>
+            <p>Gestiona los roles de acceso del sistema. Solo accesible para Super Administradores.</p>
+
+            <!-- Buscador -->
+            <input type="text" id="buscador" placeholder="🔍 Buscar por nombre o correo..." style="width: 100%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc;">
+
+            <!-- Contenedor de la Tabla -->
+            <div style="overflow-x: auto;">
+                <table id="tablaPrivilegios" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Nombre</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Correo</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Rol Actual</th>
+                            <th style="padding: 12px 15px; border-bottom: 2px solid #e2e8f0; color: #2c3e50;">Asignar Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Llenado dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/gestor_privilegios.js?v=2"></script>
+</body>
+</html>

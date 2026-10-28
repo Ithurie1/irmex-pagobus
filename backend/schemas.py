@@ -38,3 +38,7 @@ class TarjetaCrear(BaseModel):
     numero_tarjeta: str = Field(..., min_length=16, max_length=16, pattern=r"^\d{16}$")
     saldo: int
     estatus: str = "Activa"
+    usuario_id: Optional[int] = None
+class CambioRol(BaseModel):
+    nuevo_rol: str
+    nip_proporcionado: str

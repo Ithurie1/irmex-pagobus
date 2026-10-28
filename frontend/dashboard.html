@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IrMex - Inicio</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=6">
 </head>
 <body style="display: flex; justify-content: center; align-items: flex-start !important; min-height: 100vh; background-color: #f4f7f6; margin: 0; font-family: Arial, sans-serif; padding: 50px 0;">
 
-    <div class="app-container" style="max-width: 400px; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+    <div class="app-container" style="max-width: 100%; width: 100%; background-color: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
         
         <div class="header-dashboard">
             <img src="/static/logoitl.png" alt="Logo IrMex" style="width: 50px; height: 50px; border-radius: 50%;">
@@ -49,27 +49,52 @@
             <a href="historial.html" class="menu-btn">Historial de Actividad</a>
             <a href="recarga.html" class="menu-btn" id="btnRecarga">Recarga de Saldo</a>
             <a href="renovacion.html" class="menu-btn">Renovar Tarjeta</a>
+            <a href="perfil.html" class="menu-btn" id="btnPerfil">👤 Mi Perfil</a>
         </div>
 
 
         <div id="vistaAdmin">
-            <div id="moduloBuzonAdmin" style="background-color: #f39c12; padding: 15px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center;" onclick="window.location.href='buzon_admin.html'">
-                <h3 style="margin: 0; color: white;">📬 Centro de Soporte</h3>
-                 <p style="margin: 5px 0 0 0; color: #fdf2e9; font-size: 14px;">Auditoría, tickets y reportes de fallas</p>
+            <div class="dashboard-grid">
+                <div class="modulo-card">
+                    <h3>💳 Gestión de Tarjetas</h3>
+                    <p>Da de alta nuevas tarjetas, ajusta vigencias, bloquea plásticos extraviados y consulta saldos.</p>
+                    <a href="crud_tarjetas.html" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card">
+                    <h3>🔍 Verificar Estatus de Usuario</h3>
+                    <p>Ingresa la matrícula o correo del estudiante para validar su vigencia en el sistema Pagobús.</p>
+                    <a href="verificar_estatus.html" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card" id="tarjetaPrivilegios" style="display: none;">
+                    <h3>🛡️ Gestor de Privilegios</h3>
+                    <p>Administra los niveles de acceso y promueve usuarios a roles administrativos.</p>
+                    <a href="/admin/privilegios" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card">
+                    <h3>📊 Reportes de Uso</h3>
+                    <p>Visualiza métricas financieras, ingresos totales y estadísticas de uso de las rutas.</p>
+                    <a href="reportes.html" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card">
+                    <h3>📄 Verificar Documentos</h3>
+                    <p>Revisa las constancias de estudios y credenciales subidas por los alumnos.</p>
+                    <a href="verificador_documentos.html" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card">
+                    <h3>📫 Centro de Soporte <span id="badgeSoporte" class="badge-notificacion" style="display: none;"></span></h3>
+                    <p>Atiende tickets, resuelve incidencias y monitorea la auditoría del sistema.</p>
+                    <a href="buzon_admin.html" class="btn-acceder">Acceder ➔</a>
+                </div>
+                <div class="modulo-card">
+                    <h3>👤 Mi Perfil</h3>
+                    <p>Modifica tus datos personales, dirección de contacto y configura tus preferencias.</p>
+                    <a href="perfil.html" class="btn-acceder">Acceder ➔</a>
+                </div>
             </div>
-
-            <a href="crud_tarjetas.html" class="menu-btn">Gestión de tarjetas</a>
-            <a href="verificar_estatus.html" class="menu-btn">Verificar Estatus de Usuario</a>
-            <a href="reportes.html" class="menu-btn">Reportes de Uso</a>
-            <a href="verificador_documentos.html" class="menu-btn">Verificar Documentos</a>
         </div>
 
 
-        <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-            <a href="perfil.html" class="menu-btn" style="margin-top: 10px;">Mi Perfil</a>
-        </div>
-
-        <button onclick="cerrarSesion()" style="margin-top: 30px; background: none; border: none; color: #e74c3c; font-weight: bold; cursor: pointer; font-size: 16px;">Cerrar Sesión</button>
+        <a href="index.html" class="btn-cerrar-sesion">Cerrar Sesión</a>
         <a class="enlace-secundario" style="margin-top: auto; padding-top: 20px; text-align: center; color: gray; cursor: pointer;">¿Necesitas ayuda? Contactanos</a>
     </div>
 
@@ -93,6 +118,9 @@
                 <label style="font-weight: bold; font-size: 14px;">Mensaje:</label>
                 <textarea id="mensajeSoporte" rows="4" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; resize: none;" placeholder="Explica tu problema detalladamente..." required></textarea>
 
+                <label style="font-weight: bold; font-size: 14px;">Evidencia (Opcional):</label>
+                <input type="file" id="evidenciaTicket" accept="image/*" class="form-control" style="width: 100%; margin-bottom: 15px; padding: 5px;">
+
                 <div style="display: flex; justify-content: space-between;">
                     <button type="button" onclick="cerrarModalSoporte()" style="padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Cancelar</button>
                     <button type="submit" style="padding: 10px 15px; background: #2ecc71; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Enviar Reporte</button>
@@ -101,6 +129,6 @@
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/dashboard.js?v=1001"></script>
 </body>
 </html>
