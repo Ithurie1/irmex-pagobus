@@ -1,4 +1,8 @@
 import sys, os
+from dotenv import load_dotenv
+
+# Carga el archivo .env ANTES de leer cualquier os.getenv()
+load_dotenv()
 # =========================================================
 # CONFIGURACIÓN DE RUTAS (ejecutar desde la raíz del proyecto)
 # =========================================================
@@ -62,7 +66,15 @@ app.add_middleware(
 # 3. CONFIGURACIÓN DE SEGURIDAD (Bcrypt y JWT)
 # =========================================================
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = "la_clave_super_secreta_de_irmex_no_compartir" 
+
+# --- Variables de entorno cargadas desde .env ---
+SECRET_KEY = os.getenv("SECRET_KEY")
+NIP_MAESTRO = os.getenv("NIP_MAESTRO")
+NIP_RAIZ    = os.getenv("NIP_RAIZ")
+
+if not SECRET_KEY:
+    raise RuntimeError("SECRET_KEY no está definida en el archivo .env. El servidor no puede iniciar de forma segura.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 
 
