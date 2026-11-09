@@ -3,8 +3,6 @@ title: "CONTRATO DE PRESTACIÓN DE SERVICIOS DE DESARROLLO DE SOFTWARE"
 subtitle: "Proyecto IrMex — Sistema Integrado de Transporte"
 ---
 
-> **Nota de uso.** Los campos entre corchetes `[____]` son datos que no constan en la documentación del proyecto y deben completarse antes de firmar. Las cifras, fechas y horas provienen de los documentos del proyecto: *PresupuestoDesglose v1.0.1*, *Cronograma v2.1* y *ControlProyecto v2.0*. Este documento es una base de trabajo y se recomienda su revisión por un abogado antes de la firma.
-
 Contrato que celebran, por una parte, **[NOMBRE O RAZÓN SOCIAL DEL CLIENTE]**, y por la otra, **el Equipo de Desarrollo IrMex ("Equipo 2 Haitianos")**, con efectos a partir del **9 de octubre de 2026**, sujeto a las siguientes declaraciones y cláusulas.
 
 ---
@@ -90,7 +88,7 @@ Adicionalmente, el alcance incluye:
 - Capacitación al personal del CLIENTE, instalación y mantenimiento inicial.
 - Suministro de hardware conforme a la cláusula 3.2: 4 laptops, 2 lectores NFC/RFID y 100 tarjetas RFID en blanco.
 
-**Exclusiones.** No forman parte del alcance, salvo pacto escrito conforme a la cláusula 4.2 (control de cambios): la integración con una pasarela de pago bancaria real; el hosting, dominio y licencias posteriores al primer año; el soporte o mantenimiento evolutivo posterior a la entrega; y cualquier funcionalidad no listada en esta cláusula. [CONFIRMAR CON EL CLIENTE]
+**Exclusiones.** No forman parte del alcance, salvo pacto escrito conforme a la cláusula 4.2 (control de cambios): la integración con una pasarela de pago bancaria real; el hosting, dominio y licencias posteriores al primer año; el soporte o mantenimiento evolutivo posterior a la entrega; y cualquier funcionalidad no listada en esta cláusula.
 
 ### 2.1.3 Visión
 
@@ -162,12 +160,11 @@ Resumen por etapa: Análisis $1,200 · Diseño $17,800 · Codificación $12,600 
 | Hardware, software y otros | 64,900.00 |
 | **Costo de desarrollo** | **142,500.00** |
 | Utilidad (30%) | 42,750.00 |
-| IVA (16%) | 22,800.00 |
-| **PRECIO TOTAL DEL CONTRATO** | **$208,050.00** |
+| Subtotal (desarrollo + utilidad) | 185,250.00 |
+| IVA (16% sobre el subtotal) | 29,640.00 |
+| **PRECIO TOTAL DEL CONTRATO** | **$214,890.00** |
 
-*(Doscientos ocho mil cincuenta pesos 00/100 M.N.)*
-
-> **Revisar:** en el presupuesto, el IVA (22,800) se calcula sobre el costo de desarrollo (142,500) y no sobre el precio con utilidad (185,250). Si el IVA debe causarse sobre el precio total antes de impuestos, sería de 29,640 y el total de **$214,890.00**. Se respetó la cifra del presupuesto; confirmar con la contabilidad antes de firmar.
+*(Doscientos catorce mil ochocientos noventa pesos 00/100 M.N.)*
 
 ### 2.2.3 Modalidad de pago
 
@@ -175,9 +172,9 @@ El precio se paga en dos exhibiciones, en moneda nacional, mediante transferenci
 
 | Pago | % | Importe (MXN) | Momento |
 |---|---:|---:|---|
-| Anticipo | 70% | $145,635.00 | A la firma del contrato |
-| Liquidación | 30% | $62,415.00 | Al término del trabajo, contra la entrega y aceptación del sistema |
-| **Total** | 100% | **$208,050.00** | |
+| Anticipo | 70% | $150,423.00 | A la firma del contrato |
+| Liquidación | 30% | $64,467.00 | Al término del trabajo, contra la entrega y aceptación del sistema |
+| **Total** | 100% | **$214,890.00** | |
 
 Cada pago se acompaña del comprobante fiscal (CFDI) correspondiente.
 
@@ -197,7 +194,7 @@ e) Guardar confidencialidad sobre la información y los datos personales a los q
 
 a) Pagar el precio en los términos de la cláusula 2.2.3.
 b) Proporcionar oportunamente la información, accesos, aclaraciones y decisiones necesarias para el desarrollo, y designar un responsable de seguimiento y aceptación.
-c) Revisar los entregables y emitir su aceptación o sus observaciones por escrito dentro de **[5] días hábiles** posteriores a cada entrega; transcurrido ese plazo sin respuesta, se tendrán por aceptados.
+c) Revisar los entregables y emitir su aceptación o sus observaciones por escrito dentro de **5 días hábiles** posteriores a cada entrega; transcurrido ese plazo sin respuesta, se tendrán por aceptados.
 d) Recibir el hardware descrito en el apartado 2.2.2-B y responsabilizarse de su resguardo.
 e) Cubrir las renovaciones de hosting, dominio y licencias posteriores al primer año.
 
@@ -207,23 +204,23 @@ e) Cubrir las renovaciones de hosting, dominio y licencias posteriores al primer
 
 ## 4.1 Paga
 
-EL CONTRATADO tiene derecho a recibir el precio total del contrato de **$208,050.00 MXN**, conforme a este esquema:
+EL CONTRATADO tiene derecho a recibir el precio total del contrato de **$214,890.00 MXN**, conforme a este esquema:
 
-- **Anticipo del 70%** ($145,635.00), pagadero a la firma del contrato.
-- **30% restante** ($62,415.00), pagadero al término del trabajo, contra la entrega del sistema y su aceptación.
+- **Anticipo del 70%** ($150,423.00), pagadero a la firma del contrato.
+- **30% restante** ($64,467.00), pagadero al término del trabajo, contra la entrega del sistema y su aceptación.
 
 El retraso en cualquiera de los pagos faculta a EL CONTRATADO a suspender los trabajos y a ajustar el cronograma por el tiempo equivalente al retraso. En caso de mora, se pagarán intereses moratorios a razón de **[____]% mensual** sobre el saldo vencido.
 
 EL CLIENTE tiene derecho a recibir el producto, los entregables y la capacitación descritos en la cláusula 2, a la calidad y funcionalidad pactadas, a recibir información periódica del avance y a que se corrijan sin costo los defectos que se reporten dentro del periodo de garantía.
 
-**Garantía.** EL CONTRATADO corregirá sin costo los errores de funcionamiento atribuibles al desarrollo, reportados dentro de los **[30] días naturales** posteriores a la entrega.
+**Garantía.** EL CONTRATADO corregirá sin costo los errores de funcionamiento atribuibles al desarrollo, reportados dentro de los **30 días naturales** posteriores a la entrega.
 
 ## 4.2 Control de cambios
 
 Todo cambio al alcance, funcionalidades, cronograma o costo se gestiona así:
 
 1. **Solicitud escrita** de cualquiera de las partes, describiendo el cambio.
-2. **Análisis de impacto** por EL CONTRATADO en tiempo, costo (con las tarifas por hora de la cláusula 2.2.2-A) y esfuerzo en horas, en un máximo de **[3] días hábiles**.
+2. **Análisis de impacto** por EL CONTRATADO en tiempo, costo (con las tarifas por hora de la cláusula 2.2.2-A) y esfuerzo en horas, en un máximo de **3 días hábiles**.
 3. **Reunión de aclaración** de alcances con EL CLIENTE.
 4. **Aprobación por escrito** de ambas partes. Ningún cambio se ejecuta ni se cobra sin esa aprobación.
 5. **Actualización** del cronograma, presupuesto y versión del documento, registrada en la bitácora de control de cambios. Los cambios aprobados con costo adicional se facturan por separado.
@@ -239,10 +236,10 @@ Las siguientes métricas son la base de seguimiento y aceptación del proyecto:
 | Métrica | Valor acordado |
 |---|---|
 | **Tiempo (días/meses)** | 31.5 días de calendario de trabajo (09/10/26 al 23/11/26); presupuestado en **1.5 meses** (30 días) |
-| **Costo ($)** | Desarrollo $142,500.00 · Utilidad $42,750.00 · IVA $22,800.00 · **Total $208,050.00 MXN** |
+| **Costo ($)** | Desarrollo $142,500.00 · Utilidad $42,750.00 · Subtotal $185,250.00 · IVA $29,640.00 · **Total $214,890.00 MXN** |
 | **Esfuerzo (horas)** | **520 horas** en total (Admin. de proyecto 180, Diseño 140, Codificación 70, Pruebas 60, Implantación 50, Análisis 20) |
 
-Equipo de 4 personas, a medio tiempo. Se medirá el avance semanal contra estas métricas (riesgo RI-04); una desviación mayor a **[10]%** en tiempo, costo o esfuerzo debe notificarse y gestionarse según la cláusula 4.2.
+Equipo de 4 personas, a medio tiempo. Se medirá el avance semanal contra estas métricas (riesgo RI-04); una desviación mayor a **10%** en tiempo, costo o esfuerzo debe notificarse y gestionarse según la cláusula 4.2.
 
 ---
 
@@ -252,15 +249,19 @@ La entrega del proyecto se programa para el **23 de noviembre de 2026**. Se cons
 
 # 7. PROPIEDAD INTELECTUAL
 
-Una vez cubierto el 100% del precio, EL CLIENTE adquiere **[la titularidad / una licencia de uso perpetua]** sobre el código y los entregables desarrollados específicamente para este proyecto. EL CONTRATADO conserva sus derechos sobre herramientas, bibliotecas y componentes de terceros o de código abierto, que se rigen por sus propias licencias. [DEFINIR]
+EL CONTRATADO (Equipo IrMex, "Equipo 2 Haitianos") conserva la **titularidad absoluta** del código fuente, la arquitectura, la documentación técnica y demás elementos desarrollados en este proyecto. Una vez cubierto el 100% del precio, EL CONTRATADO otorga a EL CLIENTE **una licencia de uso perpetua** del sistema IrMex para sus fines operativos. Dicha licencia no transfiere la titularidad ni el derecho de ceder, sublicenciar, comercializar o modificar el código fuente, salvo pacto escrito conforme a la cláusula 4.2.
+
+Los componentes de terceros y de código abierto se rigen por sus propias licencias.
+
+---
 
 # 8. CONFIDENCIALIDAD Y DATOS PERSONALES
 
-Las partes mantendrán confidencial la información no pública que intercambien. Los datos personales de estudiantes (nombre, CURP, domicilio, documentos de identidad) se tratarán conforme a la legislación mexicana aplicable en materia de protección de datos personales, y EL CLIENTE es el responsable del tratamiento y de su aviso de privacidad. La obligación subsiste **[2]** años tras la terminación.
+Las partes mantendrán confidencial la información no pública que intercambien. Los datos personales de estudiantes (nombre, CURP, domicilio, documentos de identidad) se tratarán conforme a la legislación mexicana aplicable en materia de protección de datos personales, y EL CLIENTE es el responsable del tratamiento y de su aviso de privacidad. La obligación subsiste **2** años tras la terminación.
 
 # 9. TERMINACIÓN
 
-Cualquiera de las partes puede rescindir el contrato por incumplimiento grave de la otra, previo aviso escrito con **[5] días hábiles** para subsanar. En caso de terminación anticipada, EL CLIENTE pagará el trabajo realizado hasta esa fecha, calculado con las tarifas de la cláusula 2.2.2-A, más los costos de hardware y servicios ya adquiridos; el anticipo se aplica a ese monto.
+Cualquiera de las partes puede rescindir el contrato por incumplimiento grave de la otra, previo aviso escrito con **5 días hábiles** para subsanar. En caso de terminación anticipada, EL CLIENTE pagará el trabajo realizado hasta esa fecha, calculado con las tarifas de la cláusula 2.2.2-A, más los costos de hardware y servicios ya adquiridos; el anticipo se aplica a ese monto.
 
 # 10. LIMITACIÓN DE RESPONSABILIDAD
 
