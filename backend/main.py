@@ -29,8 +29,11 @@ from pydantic import BaseModel
 from fastapi import File, UploadFile, Form
 import shutil
 from fastapi.responses import FileResponse, StreamingResponse
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from typing import Optional
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # Rutas absolutas relativas a la raíz del proyecto
 STATIC_DIR        = os.path.join(PROJECT_ROOT, "static")
@@ -52,14 +55,21 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.mount("/documentos_seguros", StaticFiles(directory=DOCS_SEGUROS_DIR), name="documentos_seguros")
 
 # =========================================================
-# 2. CONFIGURACIÓN DE CORS (Para conectar con el HTML)
+# 2. CONFIGURACIÓN DE CORS
 # =========================================================
+# Solo se aceptan peticiones desde los orígenes locales declarados.
+# En producción, reemplaza esta lista con el dominio real del frontend.
+ORIGENES_PERMITIDOS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite peticiones de cualquier origen (ideal para desarrollo local)
+    allow_origins=ORIGENES_PERMITIDOS,
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permite todos los encabezados
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # =========================================================
@@ -74,6 +84,12 @@ NIP_RAIZ    = os.getenv("NIP_RAIZ")
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY no está definida en el archivo .env. El servidor no puede iniciar de forma segura.")
+
+# --- Configuración SMTP (cargada desde .env) ---
+SMTP_SERVER   = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT     = int(os.getenv("SMTP_PORT", 587))
+EMAIL_SENDER  = os.getenv("EMAIL_SENDER")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 
@@ -126,8 +142,29 @@ def obtener_usuario_actual(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 # =========================================================
+# DEPENDENCIA DE AUTORIZACIÓN POR ROL
+# =========================================================
+def verificar_admin(
+    usuario_actual: models.Usuario = Depends(obtener_usuario_actual)
+):
+    """
+    Dependencia que garantiza que el token JWT pertenece a un administrador.
+    Inyectar con: Depends(verificar_admin)
+    Roles permitidos: 'admin', 'superadmin'
+    """
+    roles_admin = {"admin", "superadmin"}
+    if usuario_actual.rol not in roles_admin:
+        raise HTTPException(
+            status_code=403,
+            detail="Acceso denegado. Se requieren privilegios de administrador."
+        )
+    return usuario_actual
+
+
+# =========================================================
 # 5. RUTAS DE LA API (Endpoints)
 # =========================================================
+
 
 @app.get("/")
 def leer_raiz():
@@ -268,7 +305,10 @@ def iniciar_sesion(usuario: schemas.UsuarioLogin, db: Session = Depends(get_db))
 # INCISO B: MÓDULO DE AUDITORÍA (RF_18) - VA AFUERA DEL LOGIN
 # =========================================================
 @app.get("/api/logs")
-def obtener_logs_acceso(db: Session = Depends(get_db)):
+def obtener_logs_acceso(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     # Traemos los últimos 50 accesos, ordenados del más nuevo al más viejo, e incluimos el usuario
     logs = db.query(models.LogAcceso, models.Usuario).outerjoin(
         models.Usuario, models.LogAcceso.correo_usuario == models.Usuario.correo
@@ -284,7 +324,10 @@ def obtener_logs_acceso(db: Session = Depends(get_db)):
     ]
 
 @app.get("/api/admin/auditoria/exportar")
-def exportar_auditoria(db: Session = Depends(get_db)):
+def exportar_auditoria(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     import csv
     import io
     logs = db.query(models.LogAcceso, models.Usuario).outerjoin(
@@ -312,20 +355,55 @@ class RecuperarRequest(BaseModel):
 @app.post("/api/recuperar-password")
 def enviar_correo_recuperacion(datos: RecuperarRequest, db: Session = Depends(get_db)):
     usuario = db.query(models.Usuario).filter(models.Usuario.correo == datos.correo).first()
-    
+
     if not usuario:
         raise HTTPException(status_code=404, detail="Correo no encontrado en el sistema.")
-    
-    # 🌟 SIMULACIÓN DE ENVÍO DE CORREO (Impreso en la terminal)
-    print("\n" + "="*60)
-    print(f"📧 SERVIDOR SMTP SIMULADO - ENVIANDO CORREO A: {datos.correo}")
-    print("Asunto: Recuperación de Contraseña - IrMex")
-    print(f"Cuerpo: Hola {usuario.nombre}, hemos recibido una solicitud para cambiar tu contraseña.")
-    print(f"Haz clic en el siguiente enlace para restablecerla:")
-    print(f"👉 http://127.0.0.1:5500/restablecer.html?correo={datos.correo}") # Cambia el 5500 por el puerto de tu Live Server
-    print("="*60 + "\n")
 
-    return {"mensaje": "Correo de recuperación enviado con éxito. Revisa tu bandeja de entrada (Consola)."}
+    # --- Construir enlace de restablecimiento ---
+    enlace = f"http://127.0.0.1:8000/restablecer.html?correo={datos.correo}"
+
+    # --- Construir el mensaje MIME ---
+    mensaje = MIMEMultipart("alternative")
+    mensaje["Subject"] = "Recuperación de Contraseña - IrMex"
+    mensaje["From"]    = EMAIL_SENDER
+    mensaje["To"]      = datos.correo
+
+    cuerpo_html = f"""
+    <html><body>
+      <h2>Hola, {usuario.nombre} 👋</h2>
+      <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta IrMex.</p>
+      <p>
+        <a href="{enlace}" style="
+          background:#4F46E5;color:#fff;padding:12px 24px;
+          border-radius:8px;text-decoration:none;font-weight:bold;
+        ">Restablecer mi contraseña</a>
+      </p>
+      <p style="color:#6B7280;font-size:12px;">
+        Si no solicitaste este cambio, ignora este mensaje. El enlace expira en 24 horas.
+      </p>
+    </body></html>
+    """
+    mensaje.attach(MIMEText(cuerpo_html, "html"))
+
+    # --- Envío real por SMTP con TLS ---
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as servidor:
+            servidor.ehlo()
+            servidor.starttls()
+            servidor.login(EMAIL_SENDER, EMAIL_PASSWORD)
+            servidor.sendmail(EMAIL_SENDER, datos.correo, mensaje.as_string())
+    except smtplib.SMTPException as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al enviar el correo de recuperación: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error inesperado en el servidor de correo: {str(e)}"
+        )
+
+    return {"mensaje": "Correo de recuperación enviado con éxito. Revisa tu bandeja de entrada."}
 
 class ResetRequest(BaseModel):
     correo: str
@@ -385,13 +463,24 @@ def actualizar_perfil(datos: dict, usuario_actual: models.Usuario = Depends(obte
 
 @app.get("/api/estudiantes")
 def obtener_estudiantes(db: Session = Depends(get_db)):
-    estudiantes = db.query(models.Usuario).filter(models.Usuario.es_estudiante == True).all()
+    estudiantes = db.query(models.Usuario).filter(
+        models.Usuario.es_estudiante == True,
+        models.Usuario.estatus != "inactivo"
+    ).all()
     return [{"id": est.usuario_id, "nombre": est.nombre, "correo": est.correo} for est in estudiantes]
 
 # --- NUEVAS RUTAS: GESTOR DE USUARIOS COMPLETOS ---
 @app.get("/api/usuarios_completos")
-def obtener_usuarios_completos(db: Session = Depends(get_db)):
-    usuarios = db.query(models.Usuario).options(joinedload(models.Usuario.tarjetas)).all()
+def obtener_usuarios_completos(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
+    usuarios = (
+        db.query(models.Usuario)
+        .options(joinedload(models.Usuario.tarjetas))
+        .filter(models.Usuario.estatus != "inactivo")
+        .all()
+    )
     resultado = []
     for u in usuarios:
         if u.tarjetas:
@@ -410,7 +499,11 @@ def obtener_usuarios_completos(db: Session = Depends(get_db)):
     return resultado
 
 @app.delete("/api/usuarios/{id}")
-def eliminar_usuario_completo(id: int, db: Session = Depends(get_db)):
+def eliminar_usuario_completo(
+    id: int,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -429,7 +522,11 @@ def eliminar_usuario_completo(id: int, db: Session = Depends(get_db)):
 # --- RUTAS DEL CRUD DE TARJETAS ---
 
 @app.post("/api/tarjetas", response_model=schemas.TarjetaRespuesta)
-def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
+def crear_tarjeta(
+    tarjeta: schemas.TarjetaCrear,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.numero_tarjeta == tarjeta.numero_tarjeta).first()
     if db_tarjeta:
         raise HTTPException(status_code=400, detail="Este número de tarjeta ya está registrado")
@@ -455,8 +552,17 @@ def crear_tarjeta(tarjeta: schemas.TarjetaCrear, db: Session = Depends(get_db)):
 
 # 1. Modificamos el GET para que devuelva la vigencia
 @app.get("/api/tarjetas")
-def obtener_tarjetas(db: Session = Depends(get_db)):
-    tarjetas = db.query(models.Tarjeta).options(joinedload(models.Tarjeta.usuario)).all()
+def obtener_tarjetas(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
+    tarjetas = (
+        db.query(models.Tarjeta)
+        .options(joinedload(models.Tarjeta.usuario))
+        .outerjoin(models.Usuario, models.Tarjeta.usuario_id == models.Usuario.usuario_id)
+        .filter(or_(models.Tarjeta.usuario_id == None, models.Usuario.estatus != "inactivo"))
+        .all()
+    )
     resultados = []
     for t in tarjetas:
         # Formateamos la fecha si existe, si no, ponemos un aviso
@@ -480,7 +586,12 @@ class ActualizarVigencia(BaseModel):
     dias: int
 
 @app.put("/api/tarjetas/{tarjeta_id}/vigencia")
-def modificar_vigencia(tarjeta_id: int, datos: ActualizarVigencia, db: Session = Depends(get_db)):
+def modificar_vigencia(
+    tarjeta_id: int,
+    datos: ActualizarVigencia,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
     if not tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
@@ -496,7 +607,12 @@ def modificar_vigencia(tarjeta_id: int, datos: ActualizarVigencia, db: Session =
     return {"mensaje": "Vigencia actualizada", "nueva_fecha": tarjeta.fecha_expiracion.strftime("%d/%m/%Y")}
 
 @app.put("/api/tarjetas/{tarjeta_id}")
-def actualizar_tarjeta(tarjeta_id: int, tarjeta_act: schemas.TarjetaActualizar, db: Session = Depends(get_db)):
+def actualizar_tarjeta(
+    tarjeta_id: int,
+    tarjeta_act: schemas.TarjetaActualizar,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
     if not db_tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
@@ -507,7 +623,11 @@ def actualizar_tarjeta(tarjeta_id: int, tarjeta_act: schemas.TarjetaActualizar, 
     return db_tarjeta
 
 @app.delete("/api/tarjetas/{tarjeta_id}")
-def eliminar_tarjeta(tarjeta_id: int, db: Session = Depends(get_db)):
+def eliminar_tarjeta(
+    tarjeta_id: int,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     db_tarjeta = db.query(models.Tarjeta).filter(models.Tarjeta.tarjeta_id == tarjeta_id).first()
     if not db_tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
@@ -611,7 +731,11 @@ class EstacionCrear(BaseModel):
 # ==========================================
 
 @app.post("/api/estaciones")
-def crear_estacion(estacion: EstacionCrear, db: Session = Depends(get_db)):
+def crear_estacion(
+    estacion: EstacionCrear,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     db_estacion = db.query(models.Estacion).filter(models.Estacion.nombre == estacion.nombre).first()
     if db_estacion:
         raise HTTPException(status_code=400, detail="Esta estación ya existe")
@@ -626,7 +750,11 @@ def obtener_estaciones(db: Session = Depends(get_db)):
     return db.query(models.Estacion).all()
 
 @app.put("/api/estaciones/{estacion_id}")
-def cambiar_estatus_estacion(estacion_id: int, db: Session = Depends(get_db)):
+def cambiar_estatus_estacion(
+    estacion_id: int,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     estacion = db.query(models.Estacion).filter(models.Estacion.id == estacion_id).first()
     if not estacion:
         raise HTTPException(status_code=404, detail="Estación no encontrada")
@@ -732,7 +860,10 @@ async def solicitar_renovacion(
 
 # 1. Obtener la lista de solicitudes pendientes
 @app.get("/api/renovaciones/pendientes")
-def obtener_renovaciones_pendientes(db: Session = Depends(get_db)):
+def obtener_renovaciones_pendientes(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     # Buscamos solo las que dicen "Pendiente"
     pendientes = db.query(models.Renovacion).filter(models.Renovacion.estatus == "Pendiente").all()
     
@@ -769,7 +900,12 @@ class EstatusRenovacion(BaseModel):
     estatus: str  # Debe ser "Aprobada" o "Rechazada"
 
 @app.put("/api/renovaciones/{renovacion_id}")
-def procesar_renovacion(renovacion_id: int, datos: EstatusRenovacion, db: Session = Depends(get_db)):
+def procesar_renovacion(
+    renovacion_id: int,
+    datos: EstatusRenovacion,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     renovacion = db.query(models.Renovacion).filter(models.Renovacion.id == renovacion_id).first()
     
     if not renovacion:
@@ -830,7 +966,10 @@ def cobrar_pasaje(datos: PeticionPasaje, db: Session = Depends(get_db)):
 # MÓDULO DE REPORTES PARA EL ADMINISTRADOR
 # =========================================================
 @app.get("/api/reportes/general")
-def obtener_reportes(db: Session = Depends(get_db)):
+def obtener_reportes(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)  # Solo admins y superadmins
+):
     # 1. Total de Estudiantes registrados
     total_estudiantes = db.query(models.Usuario).filter(models.Usuario.es_estudiante == True).count()
     
@@ -943,7 +1082,10 @@ def crear_ticket(
 
 # 2. El Administrador lee el buzón completo
 @app.get("/api/admin/tickets")
-def listar_tickets(db: Session = Depends(get_db)):
+def listar_tickets(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     resultados = db.query(models.TicketSoporte, models.Usuario).join(
         models.Usuario, models.TicketSoporte.usuario_id == models.Usuario.usuario_id
     ).order_by(
@@ -968,7 +1110,10 @@ def listar_tickets(db: Session = Depends(get_db)):
     return tickets_formateados
 
 @app.get("/api/admin/tickets/no-leidos")
-def contar_tickets_no_leidos(db: Session = Depends(get_db)):
+def contar_tickets_no_leidos(
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     cantidad = db.query(models.TicketSoporte).filter(models.TicketSoporte.revisado == False).count()
     return {"no_leidos": cantidad}
 
@@ -995,7 +1140,7 @@ class RecargaEmergencia(BaseModel):
 @app.put("/api/tarjetas/{tarjeta_id}/recarga-manual")
 def recarga_manual_admin(tarjeta_id: int, datos: RecargaEmergencia, db: Session = Depends(get_db)):
     # EL BLINDAJE: Definimos un PIN Maestro (En la vida real esto va en variables de entorno o base de datos)
-    PIN_MAESTRO = "2026" 
+    PIN_MAESTRO = os.getenv("NIP_MAESTRO") 
     
     if datos.pin_seguridad != PIN_MAESTRO:
         raise HTTPException(status_code=401, detail="NIP de Autorización Inválido. Incidente reportado.")
@@ -1021,7 +1166,7 @@ class AccionSegura(BaseModel):
 # 1. BLINDAJE PARA CAMBIAR ESTATUS (Bloquear/Activar)
 @app.put("/api/tarjetas/{tarjeta_id}/estatus-seguro")
 def cambiar_estatus_seguro(tarjeta_id: int, datos: AccionSegura, db: Session = Depends(get_db)):
-    PIN_MAESTRO = "2026"
+    PIN_MAESTRO = os.getenv("NIP_MAESTRO")
     if datos.pin_seguridad != PIN_MAESTRO:
         raise HTTPException(status_code=401, detail="NIP Inválido. Operación bloqueada.")
         
@@ -1037,7 +1182,7 @@ def cambiar_estatus_seguro(tarjeta_id: int, datos: AccionSegura, db: Session = D
 # 2. BLINDAJE PARA BORRAR TARJETA (Acción Destructiva)
 @app.delete("/api/tarjetas/{tarjeta_id}/borrar-seguro")
 def eliminar_tarjeta_segura(tarjeta_id: int, datos: AccionSegura, db: Session = Depends(get_db)):
-    PIN_MAESTRO = "2026"
+    PIN_MAESTRO = os.getenv("NIP_MAESTRO")
     if datos.pin_seguridad != PIN_MAESTRO:
         raise HTTPException(status_code=401, detail="NIP Inválido. Intento de borrado bloqueado.")
         
@@ -1064,7 +1209,11 @@ class RespuestaAdmin(BaseModel):
 # --- RUTAS DE ADMINISTRACIÓN DE TICKETS ---
 
 @app.delete("/api/admin/tickets/{id}")
-def eliminar_ticket(id: int, db: Session = Depends(get_db)):
+def eliminar_ticket(
+    id: int,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado")
@@ -1085,7 +1234,11 @@ def actualizar_ticket_acciones(id: int, importante: Optional[bool] = None, revis
     return {"mensaje": "Ticket actualizado"}
 
 @app.put("/api/admin/tickets/{id}/leer")
-def marcar_ticket_leido(id: int, db: Session = Depends(get_db)):
+def marcar_ticket_leido(
+    id: int,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado")
@@ -1096,7 +1249,12 @@ def marcar_ticket_leido(id: int, db: Session = Depends(get_db)):
 
 # 1. Endpoint para que el ADMIN guarde su respuesta
 @app.put("/api/admin/tickets/{ticket_id}/responder")
-def responder_ticket(ticket_id: int, datos: RespuestaAdmin, db: Session = Depends(get_db)):
+def responder_ticket(
+    ticket_id: int,
+    datos: RespuestaAdmin,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     ticket = db.query(models.TicketSoporte).filter(models.TicketSoporte.id == ticket_id).first()
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado")
@@ -1115,11 +1273,16 @@ def obtener_mis_tickets(usuario_actual: models.Usuario = Depends(obtener_usuario
 # =========================================================
 # GESTIÓN DE ROLES DE USUARIOS
 # =========================================================
-NIP_MAESTRO = "2026"
-SUPER_NIP_RAIZ = "9999"
+NIP_MAESTRO = os.getenv("NIP_MAESTRO")
+SUPER_NIP_RAIZ = os.getenv("NIP_RAIZ")
 
 @app.put("/api/usuarios/{usuario_id}/rol")
-def cambiar_rol_usuario(usuario_id: int, datos: schemas.CambioRol, db: Session = Depends(get_db)):
+def cambiar_rol_usuario(
+    usuario_id: int,
+    datos: schemas.CambioRol,
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     usuario = db.query(models.Usuario).filter(models.Usuario.usuario_id == usuario_id).first()
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -1148,7 +1311,11 @@ from fastapi.responses import StreamingResponse
 from datetime import timedelta
 
 @app.get("/api/admin/finanzas/exportar")
-def exportar_finanzas(filtro: str = "total", db: Session = Depends(get_db)):
+def exportar_finanzas(
+    filtro: str = "total",
+    db: Session = Depends(get_db),
+    _: models.Usuario = Depends(verificar_admin)
+):
     # 1. Sincronizar tabla: Usamos Movimiento y filtramos ingresos igual que el Dashboard
     query = db.query(models.Movimiento).filter(models.Movimiento.tipo.ilike("%Recarga%"))
     movimientos = query.all()

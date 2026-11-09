@@ -1,6 +1,72 @@
 // static/js/dashboard.js
 // Lógica del dashboard principal - dashboard.html
 
+// ========================================================
+// 1. UTILIDADES GLOBALES Y ORQUESTACIÓN DE SESIÓN
+// ========================================================
+
+async function cargarDashboard() {
+    const token = localStorage.getItem('token');
+    const esEstudiante = localStorage.getItem('es_estudiante');
+    const rol = localStorage.getItem('rol');
+    const correo = localStorage.getItem('correo');
+
+    if (!token) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    // 1. Mostrar la interfaz según el rol del usuario
+    if (rol === 'estudiante' || esEstudiante === 'true') {
+        document.getElementById('vistaEstudiante').style.display = 'flex';
+        document.getElementById('badgeVerificacion').style.display = 'inline-block';
+        document.getElementById('btnSoporteFlotante').style.display = 'flex';
+    } else {
+        document.getElementById('vistaAdmin').style.display = 'flex';
+        
+        // Comprobar privilegios de superadmin
+        desbloquearAccesoSuperAdmin(rol, correo);
+    }
+
+    // 2. Pedir los datos al servidor en segundo plano
+    if (rol === 'estudiante' || esEstudiante === 'true') {
+        cargarTarjetasBilletera();
+    } else {
+        cargarNotificacionesAdmin();
+    }
+    cargarMiniPerfil();
+}
+
+async function cargarMiniPerfil() {
+    const correoUsuario = localStorage.getItem('correo');
+    if (!correoUsuario) return;
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.foto_perfil) {
+                document.getElementById('fotoPerfilHeader').src = data.foto_perfil;
+            }
+        }
+    } catch (error) {
+        console.error("Error al cargar la foto:", error);
+    }
+}
+
+function cerrarSesion() {
+    localStorage.clear();
+    window.location.href = "index.html";
+}
+
+
+// ========================================================
+// 2. SECCIÓN ESTUDIANTES: BILLETERA Y TARJETAS
+// ========================================================
+
 let numeroTarjetaReal = "";
 let tarjetaOculta = true;
 
@@ -17,60 +83,6 @@ function toggleTarjeta() {
         btn.innerText = "👁️";
     }
     tarjetaOculta = !tarjetaOculta;
-}
-
-async function cargarDashboard() {
-    const token = localStorage.getItem('token');
-    const esEstudiante = localStorage.getItem('es_estudiante');
-    const rol = localStorage.getItem('rol');
-
-    if (!token) {
-        window.location.href = "index.html";
-        return;
-    }
-
-    // 1. MOSTRAR LA INTERFAZ INSTANTÁNEAMENTE (Sin esperar al backend)
-    if (rol === 'estudiante' || esEstudiante === 'true') {
-        document.getElementById('vistaEstudiante').style.display = 'flex';
-        document.getElementById('badgeVerificacion').style.display = 'inline-block';
-        document.getElementById('btnSoporteFlotante').style.display = 'flex';
-    } else {
-        document.getElementById('vistaAdmin').style.display = 'flex';
-        
-        // Desbloquear Gestor de Privilegios para superadmin
-        const correo = localStorage.getItem('correo');
-        if ((rol && rol.toLowerCase() === 'superadmin') || correo === 'admin@irmex.com') {
-            const tarjetaPrivilegios = document.getElementById('tarjetaPrivilegios');
-            if (tarjetaPrivilegios) tarjetaPrivilegios.style.display = 'flex';
-        }
-    }
-
-    // 2. PEDIR LOS DATOS AL SERVIDOR EN SEGUNDO PLANO
-    if (rol === 'estudiante' || esEstudiante === 'true') {
-        cargarTarjetasBilletera();
-    } else {
-        cargarNotificacionesAdmin();
-    }
-    cargarMiniPerfil();
-}
-
-async function cargarNotificacionesAdmin() {
-    try {
-        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets/no-leidos');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.no_leidos > 0) {
-                const badge = document.getElementById('badgeSoporte');
-                if (badge) {
-                    badge.innerText = data.no_leidos;
-                    badge.className = 'badge-notificacion';
-                    badge.style.display = 'inline-block';
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Error al cargar notificaciones:", error);
-    }
 }
 
 async function cargarTarjetasBilletera() {
@@ -154,33 +166,19 @@ async function cargarTarjetasBilletera() {
     }
 }
 
-async function cargarMiniPerfil() {
-    const correoUsuario = localStorage.getItem('correo');
-    if (!correoUsuario) return;
 
-    try {
-        const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`);
-        if (res.ok) {
-            const data = await res.json();
-            if (data.foto_perfil) {
-                document.getElementById('fotoPerfilHeader').src = data.foto_perfil;
-            }
-        }
-    } catch (error) {
-        console.error("Error al cargar la foto:", error);
-    }
+// ========================================================
+// 3. SECCIÓN ESTUDIANTES: CENTRO DE SOPORTE Y REPORTES
+// ========================================================
+
+function abrirModalSoporte() {
+    document.getElementById('modalSoporte').style.display = 'flex';
 }
 
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = "index.html";
+function cerrarModalSoporte() {
+    document.getElementById('modalSoporte').style.display = 'none';
+    document.getElementById('formSoporte').reset();
 }
-
-// ==========================================
-// LÓGICA DE SOPORTE Y REPORTES (ESTUDIANTE)
-// ==========================================
-function abrirModalSoporte() { document.getElementById('modalSoporte').style.display = 'flex'; }
-function cerrarModalSoporte() { document.getElementById('modalSoporte').style.display = 'none'; document.getElementById('formSoporte').reset(); }
 
 async function enviarTicket(event) {
     event.preventDefault();
@@ -202,7 +200,7 @@ async function enviarTicket(event) {
     try {
         const response = await fetch('http://127.0.0.1:8000/api/soporte/ticket', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }, // Eliminar Content-Type para FormData
+            headers: { 'Authorization': `Bearer ${token}` }, // Form-data autodefine boundary
             body: formData
         });
 
@@ -215,7 +213,9 @@ async function enviarTicket(event) {
         } else {
             alert("Error al enviar el reporte.");
         }
-    } catch (error) { alert("Error de conexión."); }
+    } catch (error) {
+        alert("Error de conexión.");
+    }
 }
 
 function mostrarPanelReportes() {
@@ -234,7 +234,9 @@ async function cargarMisReportes() {
 
     contenedor.innerHTML = "<p>Cargando reportes...</p>";
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/soporte/mis-tickets', { headers: { 'Authorization': `Bearer ${token}` } });
+        const response = await fetch('http://127.0.0.1:8000/api/soporte/mis-tickets', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (response.ok) {
             const tickets = await response.json();
             contenedor.innerHTML = "";
@@ -265,8 +267,55 @@ async function cargarMisReportes() {
                 `;
             });
         }
-    } catch (error) { contenedor.innerHTML = "<p style='color: red;'>Error al cargar los reportes.</p>"; }
+    } catch (error) {
+        contenedor.innerHTML = "<p style='color: red;'>Error al cargar los reportes.</p>";
+    }
 }
 
-document.addEventListener('DOMContentLoaded', cargarDashboard);
 
+// ========================================================
+// 4. SECCIÓN ADMINISTRADORES: MONITOREO Y NOTIFICACIONES
+// ========================================================
+
+async function cargarNotificacionesAdmin() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets/no-leidos', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.no_leidos > 0) {
+                const badge = document.getElementById('badgeSoporte');
+                if (badge) {
+                    badge.innerText = data.no_leidos;
+                    badge.className = 'badge-notificacion';
+                    badge.style.display = 'inline-block';
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error al cargar notificaciones:", error);
+    }
+}
+
+
+// ========================================================
+// 5. SECCIÓN SUPERADMIN: GESTIÓN DE PRIVILEGIOS
+// ========================================================
+
+function desbloquearAccesoSuperAdmin(rol, correo) {
+    if ((rol && rol.toLowerCase() === 'superadmin') || correo === 'admin@irmex.com') {
+        const tarjetaPrivilegios = document.getElementById('tarjetaPrivilegios');
+        if (tarjetaPrivilegios) {
+            tarjetaPrivilegios.style.display = 'flex';
+        }
+    }
+}
+
+
+// ========================================================
+// 6. INICIALIZACIÓN GLOBAL DE EVENTOS
+// ========================================================
+
+document.addEventListener('DOMContentLoaded', cargarDashboard);

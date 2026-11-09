@@ -28,7 +28,9 @@ async function cargarHistorial() {
             tituloArriba.innerText = `💳 Tarjeta terminación: **** ${ultimosDigitos}`;
         }
         // 2. Buscamos el historial de ESA tarjeta usando tu ruta original
-        const resHistorial = await fetch(`http://127.0.0.1:8000/api/historial/${tarjetaId}`);
+        const resHistorial = await fetch(`http://127.0.0.1:8000/api/historial/${tarjetaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const datos = await resHistorial.json();
 
         if (datos.length === 0) {

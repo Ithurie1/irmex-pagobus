@@ -1,27 +1,25 @@
 // static/js/crud_tarjetas.js
-// Lógica de gestión de tarjetas (Admin) - crud_tarjetas.html
 
-// Función para cargar las tarjetas
+// Helper de autorización JWT
+const authHeaders = () => ({ "Authorization": "Bearer " + localStorage.getItem("token") });
+
 async function cargarTarjetas() {
     const tbody = document.getElementById('tablaTarjetas');
-    tbody.innerHTML = "<tr><td colspan='5'>Cargando tarjetas...</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Cargando...</td></tr>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/tarjetas');
+        const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
         const tarjetas = await response.json();
+
         tbody.innerHTML = "";
-
-        if (tarjetas.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>No hay tarjetas registradas</td></tr>";
-            return;
-        }
-
         tarjetas.forEach(t => {
-            const estatusClass = t.estatus === 'Activa' ? 'badge-activa' : 'badge-inactiva';
-
             const propietarioStr = t.usuario ? t.usuario.nombre : 'Sin asignar';
+            const estatusClass = t.estatus === 'Activa' ? 'badge-activa' : 'badge-inactiva';
             const fila = `
                 <tr>
+                    <td>${t.tarjeta_id}</td>
                     <td>${t.numero_tarjeta}</td>
                     <td>${propietarioStr}</td>
                     <td>$ ${t.saldo}.00</td>
@@ -29,7 +27,7 @@ async function cargarTarjetas() {
                     <td style="font-weight: bold; color: #2c3e50;">${t.fecha_expiracion}</td>
                     <td>
                         <button class="btn-modificar" onclick="cambiarEstatus(${t.tarjeta_id}, '${t.estatus}')">Bloquear</button>
-                        <button style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;" onclick="ajustarVigencia(${t.tarjeta_id})">🗓️ Ajustar Vigencia</button>
+                        <button style="background-color: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;" onclick="ajustarVigencia(${t.tarjeta_id})">📅 Ajustar Vigencia</button>
                         <button class="btn-eliminar" onclick="borrarTarjeta(${t.tarjeta_id})">Borrar</button>
                         <button style="background-color: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px;" onclick="recargaEmergencia(${t.tarjeta_id})">💰 Recarga Manual</button>
                     </td>
@@ -51,10 +49,13 @@ async function ajustarVigencia(id) {
         if (!isNaN(diasInt)) {
             await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/vigencia`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + localStorage.getItem("token")
+                },
                 body: JSON.stringify({ dias: diasInt })
             });
-            cargarTarjetas(); // Recarga la tabla para ver la nueva fecha
+            cargarTarjetas();
         } else {
             alert("Por favor, ingresa un número válido.");
         }
@@ -66,7 +67,7 @@ async function borrarTarjeta(id) {
     const confirmacion = confirm("⚠️ ATENCIÓN: Estás a punto de eliminar esta tarjeta de la base de datos de forma permanente. ¿Deseas continuar?");
     if (!confirmacion) return;
 
-    const pin = prompt("🔒 ACCIÓN DESTRUCTIVA DETECTADA\n\nIngresa el NIP Maestro de Administrador para borrar el registro:");
+    const pin = prompt("🔐 ACCIÓN DESTRUCTIVA DETECTADA\n\nIngresa el NIP Maestro de Administrador para borrar el registro:");
     if (!pin) {
         alert("Operación cancelada por seguridad.");
         return;
@@ -75,7 +76,10 @@ async function borrarTarjeta(id) {
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/borrar-seguro`, {
             method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
             body: JSON.stringify({ pin_seguridad: pin })
         });
 
@@ -97,22 +101,22 @@ async function borrarTarjeta(id) {
 
 // LÓGICA DE SUDO MODE: Recarga de Emergencia
 async function recargaEmergencia(id) {
-    // 1. Pedimos el monto
     const montoInput = prompt("💰 Ingresa el monto exacto a recargar a esta tarjeta:");
     if (!montoInput || isNaN(montoInput) || montoInput <= 0) return;
 
-    // 2. EL BLINDAJE: Pedimos el NIP de Autorización
-    const pin = prompt("🔒 ACCIÓN SENSIBLE DETECTADA\n\nPara autorizar la inyección de fondos, ingresa el NIP Maestro de Administrador:");
+    const pin = prompt("🔐 ACCIÓN SENSIBLE DETECTADA\n\nPara autorizar la inyección de fondos, ingresa el NIP Maestro de Administrador:");
     if (!pin) {
         alert("Operación cancelada por seguridad.");
         return;
     }
 
     try {
-        // 3. Enviamos la petición protegida
         const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/recarga-manual`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
             body: JSON.stringify({
                 monto: parseFloat(montoInput),
                 pin_seguridad: pin
@@ -121,7 +125,7 @@ async function recargaEmergencia(id) {
 
         if (response.ok) {
             alert("✅ NIP Aceptado. Los fondos han sido inyectados correctamente.");
-            cargarTarjetas(); // Recargamos la tabla para ver el nuevo saldo
+            cargarTarjetas();
         } else {
             const error = await response.json();
             alert("🚨 ALERTA DE SEGURIDAD: " + error.detail);
@@ -134,7 +138,7 @@ async function recargaEmergencia(id) {
 // LÓGICA DE SUDO MODE: Cambiar Estatus
 async function cambiarEstatus(id, estatusActual) {
     const accion = estatusActual === 'Activa' ? 'BLOQUEAR' : 'ACTIVAR';
-    const pin = prompt(`🔒 ACCIÓN SENSIBLE\n\nEstás a punto de ${accion} esta tarjeta.\nIngresa el NIP Maestro para autorizar:`);
+    const pin = prompt(`🔐 ACCIÓN SENSIBLE\n\nEstás a punto de ${accion} esta tarjeta.\nIngresa el NIP Maestro para autorizar:`);
 
     if (!pin) {
         alert("Operación cancelada por seguridad.");
@@ -144,12 +148,15 @@ async function cambiarEstatus(id, estatusActual) {
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/estatus-seguro`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
             body: JSON.stringify({ pin_seguridad: pin })
         });
 
         if (response.ok) {
-            cargarTarjetas(); // Recarga la tabla
+            cargarTarjetas();
         } else {
             const error = await response.json();
             alert("🚨 ALERTA DE SEGURIDAD: " + error.detail);
@@ -174,10 +181,13 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
     try {
         const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                numero_tarjeta: num, 
-                saldo: parseInt(saldo), 
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify({
+                numero_tarjeta: num,
+                saldo: parseInt(saldo),
                 estatus: estatus,
                 usuario_id: usuarioId ? parseInt(usuarioId) : null
             })
@@ -207,7 +217,9 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
 // Cargar select de estudiantes
 async function cargarEstudiantes() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/estudiantes');
+        const response = await fetch('http://127.0.0.1:8000/api/estudiantes', {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
         const estudiantes = await response.json();
         const select = document.getElementById('selectUsuario');
         select.innerHTML = '<option value="">-- Sin asignar --</option>';
@@ -219,7 +231,6 @@ async function cargarEstudiantes() {
     }
 }
 
-// Ejecutar la carga al abrir la página
 document.addEventListener('DOMContentLoaded', () => {
     cargarEstudiantes();
     cargarTarjetas();

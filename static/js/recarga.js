@@ -13,7 +13,7 @@ async function cargarDatosTarjeta() {
         }
 
         const res = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
 
         if (res.ok) {
@@ -110,7 +110,10 @@ async function realizarRecarga(e) {
         // Hacer el cobro en el backend
         const response = await fetch('http://127.0.0.1:8000/api/recargar', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
             body: JSON.stringify({
                 tarjeta_id: parseInt(tarjetaId),
                 monto: montoRecarga

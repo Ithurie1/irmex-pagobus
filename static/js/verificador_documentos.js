@@ -1,12 +1,17 @@
 // static/js/verificador_documentos.js
 // Lógica para verificar documentos de renovación (Admin) - verificador_documentos.html
 
+// Helper de autorización JWT
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 async function cargarSolicitudes() {
     const tbody = document.getElementById('tablaRenovaciones');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando solicitudes...</td></tr>';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/renovaciones/pendientes');
+        const response = await fetch('http://127.0.0.1:8000/api/renovaciones/pendientes', {
+            headers: authHeaders()
+        });
         const datos = await response.json();
 
         if (datos.length === 0) {
@@ -16,7 +21,6 @@ async function cargarSolicitudes() {
 
         tbody.innerHTML = '';
         datos.forEach(req => {
-            // Ruta a la carpeta estática de documentos seguros montada en FastAPI
             const urlDocumento = `http://127.0.0.1:8000/documentos_seguros/${req.nombre_archivo}`;
 
             tbody.innerHTML += `
@@ -26,7 +30,7 @@ async function cargarSolicitudes() {
                     <td>${req.correo}</td>
                     <td>${req.fecha}</td>
                     <td>
-                        <a href="${urlDocumento}" target="_blank" class="btn-ver">👁️ Ver Archivo</a>
+                        <a href="${urlDocumento}" target="_blank" class="btn-ver">📄 Ver Archivo</a>
                     </td>
                     <td>
                         <button class="btn-aprobar" onclick="procesarSolicitud(${req.id_renovacion}, 'Aprobada')">Aprobar</button>
@@ -46,14 +50,14 @@ async function procesarSolicitud(id, estatus) {
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/renovaciones/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ estatus: estatus })
         });
 
         const data = await response.json();
         if (response.ok) {
             alert(data.mensaje);
-            cargarSolicitudes(); // Recargar la tabla
+            cargarSolicitudes();
         } else {
             alert("Error: " + data.detail);
         }
@@ -62,5 +66,4 @@ async function procesarSolicitud(id, estatus) {
     }
 }
 
-// Cargar al iniciar la página
 cargarSolicitudes();

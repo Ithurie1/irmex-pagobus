@@ -1,18 +1,20 @@
 // static/js/verificar_estatus.js
 
+// Helper de autorización JWT
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 document.addEventListener('DOMContentLoaded', () => {
     cargarUsuarios();
 
-    // Filtro de búsqueda en tiempo real
     const buscador = document.getElementById('buscador');
     buscador.addEventListener('input', function() {
         const query = this.value.toLowerCase();
         const filas = document.querySelectorAll('#tablaUsuarios tr');
-        
+
         filas.forEach(fila => {
             const nombre = fila.children[1].innerText.toLowerCase();
             const correo = fila.children[2].innerText.toLowerCase();
-            
+
             if (nombre.includes(query) || correo.includes(query)) {
                 fila.style.display = '';
             } else {
@@ -27,9 +29,11 @@ async function cargarUsuarios() {
     tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Cargando estudiantes...</td></tr>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios_completos');
+        const response = await fetch('http://127.0.0.1:8000/api/usuarios_completos', {
+            headers: authHeaders()
+        });
         const usuarios = await response.json();
-        
+
         tbody.innerHTML = "";
 
         if (usuarios.length === 0) {
@@ -42,8 +46,10 @@ async function cargarUsuarios() {
             if (usuario.estatus_tarjeta === 'Activa') estatusClass = 'badge-activa';
             else if (usuario.estatus_tarjeta === 'Bloqueada') estatusClass = 'badge-inactiva';
 
-            const badgeHtml = estatusClass ? `<span class="${estatusClass}">${usuario.estatus_tarjeta}</span>` : usuario.estatus_tarjeta;
-            
+            const badgeHtml = estatusClass
+                ? `<span class="${estatusClass}">${usuario.estatus_tarjeta}</span>`
+                : usuario.estatus_tarjeta;
+
             const userRol = usuario.rol || 'estudiante';
             const rolHtml = userRol.toUpperCase();
 
@@ -73,7 +79,8 @@ async function darDeBaja(id) {
 
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: authHeaders()
         });
 
         if (response.ok) {
@@ -88,4 +95,3 @@ async function darDeBaja(id) {
         alert("🚨 ERROR: No se pudo conectar con el servidor.");
     }
 }
-

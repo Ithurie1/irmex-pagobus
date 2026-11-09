@@ -1,13 +1,18 @@
 // static/js/estaciones.js
 // Lógica de gestión de estaciones - estaciones.html
 
+// Helper de autorización JWT
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 // Cargar estaciones al iniciar
 async function cargarEstaciones() {
     const tbody = document.getElementById('tablaEstaciones');
     tbody.innerHTML = '';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/estaciones');
+        const response = await fetch('http://127.0.0.1:8000/api/estaciones', {
+            headers: authHeaders()
+        });
         const estaciones = await response.json();
 
         estaciones.forEach(est => {
@@ -43,7 +48,7 @@ document.getElementById('formEstacion').addEventListener('submit', async (e) => 
     try {
         const res = await fetch('http://127.0.0.1:8000/api/estaciones', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ nombre, tipo })
         });
 
@@ -62,7 +67,10 @@ document.getElementById('formEstacion').addEventListener('submit', async (e) => 
 // Cambiar estatus
 async function cambiarEstatus(id) {
     try {
-        await fetch(`http://127.0.0.1:8000/api/estaciones/${id}`, { method: 'PUT' });
+        await fetch(`http://127.0.0.1:8000/api/estaciones/${id}`, {
+            method: 'PUT',
+            headers: authHeaders()
+        });
         cargarEstaciones(); // Recargar la tabla para ver el cambio
     } catch (error) {
         console.error("Error al actualizar", error);

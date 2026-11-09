@@ -1,5 +1,8 @@
 // static/js/buzon_admin.js
 
+// Helper de autorización JWT — lee el token guardado en localStorage
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 let ticketsGlobales = [];
 let carpetaActual = 'bandeja';
 
@@ -10,7 +13,9 @@ async function cargarTicketsBuzon() {
     contenedor.innerHTML = "<p style='padding: 20px; color: gray;'>Cargando mensajes...</p>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets');
+        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets', {
+            headers: authHeaders()
+        });
         ticketsGlobales = await response.json();
         renderizarLista();
     } catch (error) {
@@ -20,12 +25,9 @@ async function cargarTicketsBuzon() {
 
 function cambiarCarpeta(carpeta, boton) {
     carpetaActual = carpeta;
-    
-    // Actualizar estilos de los botones del sidebar
     const botones = document.querySelectorAll('.buzon-sidebar button');
     botones.forEach(b => b.classList.remove('active'));
     boton.classList.add('active');
-
     renderizarLista();
 }
 
@@ -33,7 +35,6 @@ function renderizarLista() {
     const contenedor = document.getElementById('listaTickets');
     let tickets = [];
 
-    // Filtrado por carpeta sin usar estatus
     if (carpetaActual === 'bandeja') {
         tickets = ticketsGlobales.filter(t => t.revisado === false);
     } else if (carpetaActual === 'destacados') {
@@ -52,16 +53,15 @@ function renderizarLista() {
         const leidoClass = ticket.revisado ? "leido" : "";
         const estrellaIcono = ticket.es_importante ? "⭐" : "☆";
         const estrellaColor = ticket.es_importante ? "#f2a60c" : "#dadce0";
-        const checkboxIcon = ticket.revisado ? "☑️" : "☐";
-        
+        const checkboxIcon = ticket.revisado ? "✅" : "⬜";
+
         let fecha = "";
         if (ticket.fecha_creacion) {
             fecha = new Date(ticket.fecha_creacion).toLocaleDateString();
         }
-        
+
         const nombreMostrar = ticket.remitente;
         const extractoMensaje = ticket.mensaje.length > 60 ? ticket.mensaje.substring(0, 60) + "..." : ticket.mensaje;
-        
         const etiquetaRespuesta = ticket.respuesta ? ' <span style="font-size:10px; background:#f2f6fc; border:1px solid #dadce0; color:#5f6368; padding:2px 4px; border-radius:4px;">Respondido</span>' : '';
 
         console.log(ticket);
@@ -72,17 +72,11 @@ function renderizarLista() {
                     <span onclick="alternarLeido(event, ${ticket.id}, ${!ticket.revisado})" style="cursor: pointer;" title="Marcar como ${ticket.revisado ? 'no leído' : 'leído'}">${checkboxIcon}</span>
                     <span onclick="alternarImportancia(event, ${ticket.id}, ${!ticket.es_importante})" style="cursor: pointer; font-size: 18px; color: ${estrellaColor};" title="Destacar">${estrellaIcono}</span>
                 </div>
-                
-                <div class="ticket-sender">
-                    ${nombreMostrar}
-                </div>
-                
+                <div class="ticket-sender">${nombreMostrar}</div>
                 <div class="ticket-subject">
                     ${ticket.asunto}${etiquetaRespuesta} <span class="ticket-snippet">- ${extractoMensaje}</span>
                 </div>
-                
                 <div class="ticket-date">${fecha}</div>
-                
                 <div class="ticket-action" onclick="eliminarTicket(event, ${ticket.id})" title="Eliminar">🗑️</div>
             </div>
         `;
@@ -92,36 +86,39 @@ function renderizarLista() {
 
 async function alternarImportancia(event, id, nuevoEstado) {
     event.stopPropagation();
-    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?importante=${nuevoEstado}`, { method: 'PUT' });
-    
-    // Update local state to avoid full reload if preferred, but reload is safer
+    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?importante=${nuevoEstado}`, {
+        method: 'PUT',
+        headers: authHeaders()
+    });
     const t = ticketsGlobales.find(x => x.id === id);
-    if(t) t.es_importante = nuevoEstado;
+    if (t) t.es_importante = nuevoEstado;
     renderizarLista();
 }
 
 async function alternarLeido(event, id, nuevoEstado) {
     event.stopPropagation();
-    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?revisado=${nuevoEstado}`, { method: 'PUT' });
-    
+    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?revisado=${nuevoEstado}`, {
+        method: 'PUT',
+        headers: authHeaders()
+    });
     const t = ticketsGlobales.find(x => x.id === id);
-    if(t) t.revisado = nuevoEstado;
+    if (t) t.revisado = nuevoEstado;
     renderizarLista();
 }
 
 async function eliminarTicket(event, id) {
     event.stopPropagation();
-    
     const seguro = confirm("¿Estás seguro de eliminar este ticket permanentemente?");
     if (!seguro) return;
 
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: authHeaders()
         });
 
         if (response.ok) {
-            cargarTicketsBuzon(); // Recargar de DB
+            cargarTicketsBuzon();
         } else {
             alert("Error al eliminar el ticket.");
         }
@@ -154,19 +151,19 @@ async function abrirModalLectura(id) {
     }
 
     document.getElementById('modalLectura').style.display = 'flex';
-    
-    // Marcar como leído al abrir
+
     if (!ticket.revisado) {
         try {
-            await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/leer`, { method: 'PUT' });
+            await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/leer`, {
+                method: 'PUT',
+                headers: authHeaders()
+            });
             ticket.revisado = true;
             const row = document.getElementById(`ticket-row-${id}`);
             if (row) row.classList.add('leido');
-            
-            // Actualizar checkbox a leído visualmente
             const spanIcono = row.querySelector('.ticket-icons span');
-            if (spanIcono) spanIcono.innerText = '☑️';
-        } catch(e) {
+            if (spanIcono) spanIcono.innerText = '✅';
+        } catch (e) {
             console.error("No se pudo marcar como leído");
         }
     }
@@ -188,7 +185,7 @@ async function enviarRespuesta() {
     try {
         const res = await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/responder`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ respuesta: respuesta })
         });
 

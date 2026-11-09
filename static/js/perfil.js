@@ -4,8 +4,13 @@
 const correoUsuario = localStorage.getItem('correo');
 let fotoBase64 = "";
 
+// Helper de autorización JWT
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 async function cargarPerfil() {
-    const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`);
+    const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
+        headers: authHeaders()
+    });
     const data = await res.json();
 
     if (res.ok) {
@@ -70,7 +75,7 @@ async function guardarPerfil() {
 
     const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(datosEditados)
     });
 

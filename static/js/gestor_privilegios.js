@@ -1,3 +1,8 @@
+// static/js/gestor_privilegios.js
+
+// Helper de autorización JWT
+const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
+
 document.addEventListener('DOMContentLoaded', () => {
     cargarUsuarios();
 
@@ -6,11 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     buscador.addEventListener('input', function() {
         const query = this.value.toLowerCase();
         const filas = document.querySelectorAll('#tablaPrivilegios tbody tr');
-        
+
         filas.forEach(fila => {
             const nombre = fila.children[0].innerText.toLowerCase();
             const correo = fila.children[1].innerText.toLowerCase();
-            
+
             if (nombre.includes(query) || correo.includes(query)) {
                 fila.style.display = '';
             } else {
@@ -25,9 +30,11 @@ async function cargarUsuarios() {
     tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Cargando usuarios...</td></tr>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios_completos');
+        const response = await fetch('http://127.0.0.1:8000/api/usuarios_completos', {
+            headers: authHeaders()
+        });
         const usuarios = await response.json();
-        
+
         tbody.innerHTML = "";
 
         if (usuarios.length === 0) {
@@ -39,7 +46,6 @@ async function cargarUsuarios() {
             const userRol = u.rol || 'estudiante';
             const rolActual = userRol.toUpperCase();
 
-            // Celda de asignación interactiva (el usuario ya está verificado como superadmin en el HTML)
             const selectRol = `
                 <select class="form-select select-rol form-select-sm" data-usuario-id="${u.id}" style="width: 130px;">
                     <option value="estudiante" ${userRol === 'estudiante' ? 'selected' : ''}>Estudiante</option>
@@ -61,7 +67,6 @@ async function cargarUsuarios() {
 
         // Adjuntar evento change a los selects recién inyectados
         document.querySelectorAll('.select-rol').forEach(select => {
-            // Guardar el valor original como data-attribute en el elemento en caso de revertir
             select.dataset.originalRol = select.value;
             select.addEventListener('change', function() {
                 cambiarRol(this.dataset.usuarioId, this, this.dataset.originalRol);
@@ -75,27 +80,23 @@ async function cargarUsuarios() {
 
 async function cambiarRol(usuarioId, selectElement, currentRol) {
     const nuevoRol = selectElement.value;
-    const token = localStorage.getItem('token');
-    
+
     let mensajePrompt = "Ingrese el Código Maestro para autorizar este cambio de privilegios:";
     if (currentRol === 'superadmin' || nuevoRol === 'superadmin') {
-        mensajePrompt = "⚠️ ALERTA DE SEGURIDAD MÁXIMA ⚠️\nEstá a punto de alterar privilegios de Super Administrador.\nIngrese el SUPER NIP RAIZ:";
+        mensajePrompt = "🚨 ALERTA DE SEGURIDAD MÁXIMA 🚨\nEstá a punto de alterar privilegios de Super Administrador.\nIngrese el SUPER NIP RAIZ:";
     }
 
     const nipProporcionado = prompt(mensajePrompt);
 
     if (!nipProporcionado) {
-        selectElement.value = currentRol; // revert
+        selectElement.value = currentRol;
         return;
     }
 
     try {
         const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${usuarioId}/rol`, {
             method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({
                 nuevo_rol: nuevoRol,
                 nip_proporcionado: nipProporcionado
@@ -104,11 +105,11 @@ async function cambiarRol(usuarioId, selectElement, currentRol) {
 
         if (response.ok) {
             alert(`✅ Privilegios actualizados correctamente a: ${nuevoRol.toUpperCase()}`);
-            cargarUsuarios(); // refresh list to get latest roles
+            cargarUsuarios();
         } else {
             const error = await response.json();
             alert(`🚨 ERROR: ${error.detail}`);
-            selectElement.value = currentRol; // revert on error
+            selectElement.value = currentRol;
         }
     } catch (error) {
         console.error("Error al cambiar rol:", error);

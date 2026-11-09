@@ -1,25 +1,29 @@
 // static/js/reportes.js
 // Lógica de reportes y auditoría (Admin) - reportes.html
 
+// Helper de autorización JWT
+const authHeaders = () => ({ "Authorization": "Bearer " + localStorage.getItem("token") });
+
 // VARIABLE PARA GUARDAR LA GRÁFICA
 let myChart = null;
 
 async function cargarReportes() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/reportes/general');
+        const response = await fetch('http://127.0.0.1:8000/api/reportes/general', {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
         const data = await response.json();
 
         const contenedor = document.getElementById('contenedorMetricas');
 
-        // Pintar Cuadros
         contenedor.innerHTML = `
             <div class="card-metrica">
                 <h3>Total Estudiantes</h3>
-                <p>🎓 ${data.total_estudiantes}</p>
+                <p>👨‍🎓 ${data.total_estudiantes}</p>
             </div>
             <div class="card-metrica">
                 <h3>Tarjetas Activas</h3>
-                <p style="color: #2ecc71;">✔️ ${data.tarjetas_activas}</p>
+                <p style="color: #2ecc71;">✅ ${data.tarjetas_activas}</p>
             </div>
             <div class="card-metrica" style="background-color: rgba(46, 204, 113, 0.1); border-color: #2ecc71;">
                 <h3 style="color: #27ae60;">Ingresos Totales</h3>
@@ -31,7 +35,6 @@ async function cargarReportes() {
             </div>
         `;
 
-        // Pintar Gráfica
         dibujarGrafica(data.total_ingresos, data.total_gastos);
 
     } catch (error) {
@@ -42,7 +45,6 @@ async function cargarReportes() {
 function dibujarGrafica(ingresos, gastos) {
     const ctx = document.getElementById('graficaFinanzas').getContext('2d');
 
-    // Destruir gráfica vieja si existe (evita errores al recargar)
     if (myChart) {
         myChart.destroy();
     }
@@ -55,7 +57,7 @@ function dibujarGrafica(ingresos, gastos) {
                 {
                     label: 'Ingresos (Recargas)',
                     data: [ingresos],
-                    backgroundColor: 'rgba(46, 204, 113, 0.7)', // Verde
+                    backgroundColor: 'rgba(46, 204, 113, 0.7)',
                     borderColor: '#27ae60',
                     borderWidth: 1,
                     borderRadius: 5
@@ -63,7 +65,7 @@ function dibujarGrafica(ingresos, gastos) {
                 {
                     label: 'Gastos (Cobros Validador)',
                     data: [gastos],
-                    backgroundColor: 'rgba(231, 76, 60, 0.7)', // Rojo
+                    backgroundColor: 'rgba(231, 76, 60, 0.7)',
                     borderColor: '#c0392b',
                     borderWidth: 1,
                     borderRadius: 5
@@ -77,7 +79,7 @@ function dibujarGrafica(ingresos, gastos) {
                     beginAtZero: true,
                     ticks: {
                         callback: function (value) {
-                            return '$' + value; // Poner el signo de pesos en el eje Y
+                            return '$' + value;
                         }
                     }
                 }
@@ -88,7 +90,9 @@ function dibujarGrafica(ingresos, gastos) {
 
 async function cargarLogs() {
     try {
-        const res = await fetch('http://127.0.0.1:8000/api/logs');
+        const res = await fetch('http://127.0.0.1:8000/api/logs', {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
         if (res.ok) {
             const logs = await res.json();
             const tbody = document.getElementById('tablaLogs');
@@ -115,11 +119,115 @@ async function cargarLogs() {
     }
 }
 
+// ==========================================
+// DESCARGAS SEGURAS CON JWT (BLOB + DOM LINK)
+// ==========================================
+
+async function exportarFinanzas(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    const filtroSelect = document.getElementById('filtroVentas');
+    const filtro = filtroSelect ? filtroSelect.value : 'total';
+
+    try {
+        const response = await fetch(`http://127.0.0.1:8000/api/admin/finanzas/exportar?filtro=${filtro}`, {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                alert("Sesión expirada o no autorizada (Error 401). Inicia sesión nuevamente.");
+            } else if (response.status === 403) {
+                alert("Acceso denegado (Error 403). Se requieren permisos de administrador.");
+            } else {
+                alert("Error al descargar reporte de ventas (Código: " + response.status + ").");
+            }
+            return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ventas_irmex_${filtro}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Error al exportar finanzas:", error);
+        alert("Error de conexión al descargar el reporte de ventas.");
+    }
+}
+
+async function exportarAuditoria(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/admin/auditoria/exportar', {
+            headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                alert("Sesión expirada o no autorizada (Error 401). Inicia sesión nuevamente.");
+            } else if (response.status === 403) {
+                alert("Acceso denegado (Error 403). Se requieren permisos de administrador.");
+            } else {
+                alert("Error al descargar auditoría (Código: " + response.status + ").");
+            }
+            return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "auditoria_irmex.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Error al exportar auditoría:", error);
+        alert("Error de conexión al descargar la auditoría.");
+    }
+}
+
+function actualizarEnlaceVentas() {
+    // Sincronización conservada para compatibilidad con el evento onchange del select
+}
+
+// Vincular eventos de descarga segura al DOM
+function inicializarDescargas() {
+    const btnVentas = document.getElementById('btnExportarVentas');
+    if (btnVentas) {
+        btnVentas.removeAttribute('target');
+        btnVentas.href = 'javascript:void(0);';
+        btnVentas.onclick = (e) => exportarFinanzas(e);
+    }
+
+    const btnAuditoria = document.querySelector('a[href*="/api/admin/auditoria/exportar"]');
+    if (btnAuditoria) {
+        btnAuditoria.removeAttribute('target');
+        btnAuditoria.href = 'javascript:void(0);';
+        btnAuditoria.onclick = (e) => exportarAuditoria(e);
+    }
+}
+
+// Exponer funciones globales
+window.exportarFinanzas = exportarFinanzas;
+window.exportarAuditoria = exportarAuditoria;
+window.actualizarEnlaceVentas = actualizarEnlaceVentas;
+
 // Arrancar todo al abrir la página
 cargarReportes();
 cargarLogs();
-
-function actualizarEnlaceVentas() {
-    const filtro = document.getElementById('filtroVentas').value;
-    document.getElementById('btnExportarVentas').href = http://127.0.0.1:8000/api/admin/finanzas/exportar?filtro=;
-}
+document.addEventListener('DOMContentLoaded', inicializarDescargas);
+inicializarDescargas();
