@@ -20,6 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,6 +34,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun LoginScreen(viewModel: LoginViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // El texto de los campos vive en la pantalla (estado de UI puro) para que nunca se desincronice al teclear.
+    var correo by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -49,8 +55,8 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel()) {
         Spacer(Modifier.height(32.dp))
 
         OutlinedTextField(
-            value = state.correo,
-            onValueChange = viewModel::onCorreoChange,
+            value = correo,
+            onValueChange = { correo = it },
             label = { Text("Correo electrónico") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -58,8 +64,8 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel()) {
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
-            value = state.password,
-            onValueChange = viewModel::onPasswordChange,
+            value = password,
+            onValueChange = { password = it },
             label = { Text("Contraseña") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -68,7 +74,7 @@ fun LoginScreen(viewModel: LoginViewModel = hiltViewModel()) {
         )
         Spacer(Modifier.height(24.dp))
         Button(
-            onClick = viewModel::iniciarSesion,
+            onClick = { viewModel.iniciarSesion(correo, password) },
             enabled = !state.cargando,
             modifier = Modifier.fillMaxWidth().height(52.dp),
         ) {

@@ -13,8 +13,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class LoginUiState(
-    val correo: String = "",
-    val password: String = "",
     val cargando: Boolean = false,
     /** Mensaje para el diálogo de error; null si no hay que mostrarlo. */
     val error: String? = null,
@@ -28,20 +26,18 @@ class LoginViewModel @Inject constructor(
     private val _state = MutableStateFlow(LoginUiState())
     val state: StateFlow<LoginUiState> = _state.asStateFlow()
 
-    fun onCorreoChange(valor: String) = _state.update { it.copy(correo = valor) }
-    fun onPasswordChange(valor: String) = _state.update { it.copy(password = valor) }
     fun cerrarError() = _state.update { it.copy(error = null) }
 
-    fun iniciarSesion() {
-        val actual = _state.value
-        if (actual.cargando) return
+    /** Recibe lo que el usuario tiene escrito en este momento (los campos viven en la pantalla). */
+    fun iniciarSesion(correo: String, password: String) {
+        if (_state.value.cargando) return
         viewModelScope.launch {
             _state.update { it.copy(cargando = true) }
-            val resultado = login(actual.correo, actual.password)
+            val resultado = login(correo, password)
             _state.update {
                 when (resultado) {
                     // La navegación al Home ocurre sola cuando DataStore publica la sesión.
-                    is Outcome.Success -> it.copy(cargando = false, password = "")
+                    is Outcome.Success -> it.copy(cargando = false)
                     is Outcome.Failure -> it.copy(cargando = false, error = resultado.message)
                 }
             }
