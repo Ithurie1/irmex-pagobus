@@ -1,0 +1,43 @@
+package com.irmex.admin.domain.repository
+
+import com.irmex.admin.domain.model.Estacion
+import com.irmex.admin.domain.model.Outcome
+import com.irmex.admin.domain.model.Renovacion
+import com.irmex.admin.domain.model.ResumenGeneral
+import com.irmex.admin.domain.model.Session
+import com.irmex.admin.domain.model.Tarjeta
+import com.irmex.admin.domain.model.Ticket
+import kotlinx.coroutines.flow.Flow
+
+interface AuthRepository {
+    val session: Flow<Session?>
+    suspend fun login(correo: String, password: String): Outcome<Session>
+    suspend fun logout()
+}
+
+interface TarjetaRepository {
+    fun observar(): Flow<List<Tarjeta>>
+    suspend fun refrescar(): Outcome<Unit>
+}
+
+interface EstacionRepository {
+    fun observar(): Flow<List<Estacion>>
+    suspend fun refrescar(): Outcome<Unit>
+}
+
+interface TicketRepository {
+    fun observar(): Flow<List<Ticket>>
+    suspend fun refrescar(): Outcome<Unit>
+    suspend fun responder(id: Int, respuesta: String): Outcome<Unit>
+    suspend fun marcarImportante(id: Int, importante: Boolean): Outcome<Unit>
+}
+
+interface RenovacionRepository {
+    fun observar(): Flow<List<Renovacion>>
+    suspend fun refrescar(): Outcome<Unit>
+    suspend fun resolver(id: Int, aprobar: Boolean): Outcome<Unit>
+}
+
+interface ResumenRepository {
+    suspend fun obtener(): Outcome<ResumenGeneral>
+}
