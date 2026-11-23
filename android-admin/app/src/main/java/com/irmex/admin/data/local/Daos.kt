@@ -26,24 +26,6 @@ abstract class TarjetaDao {
 }
 
 @Dao
-abstract class EstacionDao {
-    @Query("SELECT * FROM estaciones ORDER BY nombre")
-    abstract fun observar(): Flow<List<EstacionEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    abstract suspend fun insertar(items: List<EstacionEntity>)
-
-    @Query("DELETE FROM estaciones")
-    abstract suspend fun borrarTodo()
-
-    @Transaction
-    open suspend fun reemplazar(items: List<EstacionEntity>) {
-        borrarTodo()
-        insertar(items)
-    }
-}
-
-@Dao
 abstract class TicketDao {
     @Query("SELECT * FROM tickets ORDER BY orden")
     abstract fun observar(): Flow<List<TicketEntity>>

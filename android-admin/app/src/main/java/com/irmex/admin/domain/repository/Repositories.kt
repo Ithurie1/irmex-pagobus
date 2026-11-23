@@ -1,6 +1,5 @@
 package com.irmex.admin.domain.repository
 
-import com.irmex.admin.domain.model.Estacion
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
@@ -17,11 +16,6 @@ interface AuthRepository {
 
 interface TarjetaRepository {
     fun observar(): Flow<List<Tarjeta>>
-    suspend fun refrescar(): Outcome<Unit>
-}
-
-interface EstacionRepository {
-    fun observar(): Flow<List<Estacion>>
     suspend fun refrescar(): Outcome<Unit>
 }
 

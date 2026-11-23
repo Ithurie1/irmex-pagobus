@@ -15,13 +15,6 @@ data class Tarjeta(
     val propietario: String,
 )
 
-data class Estacion(
-    val id: Int,
-    val nombre: String,
-    val tipo: String,
-    val estatus: String,
-)
-
 data class Ticket(
     val id: Int,
     val remitente: String,

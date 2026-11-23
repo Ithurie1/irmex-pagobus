@@ -19,13 +19,6 @@ data class TarjetaDto(
     val propietario: String?,
 )
 
-data class EstacionDto(
-    val id: Int,
-    val nombre: String?,
-    val tipo: String?,
-    val estatus: String?,
-)
-
 data class TicketDto(
     val id: Int,
     val remitente: String?,

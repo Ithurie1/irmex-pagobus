@@ -13,14 +13,6 @@ data class TarjetaEntity(
     val propietario: String,
 )
 
-@Entity(tableName = "estaciones")
-data class EstacionEntity(
-    @PrimaryKey val id: Int,
-    val nombre: String,
-    val tipo: String,
-    val estatus: String,
-)
-
 @Entity(tableName = "tickets")
 data class TicketEntity(
     @PrimaryKey val id: Int,

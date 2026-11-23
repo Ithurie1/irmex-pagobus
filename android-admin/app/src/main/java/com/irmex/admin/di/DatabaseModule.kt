@@ -22,7 +22,6 @@ object DatabaseModule {
             .build()
 
     @Provides fun provideTarjetaDao(db: IrmexDatabase) = db.tarjetaDao()
-    @Provides fun provideEstacionDao(db: IrmexDatabase) = db.estacionDao()
     @Provides fun provideTicketDao(db: IrmexDatabase) = db.ticketDao()
     @Provides fun provideRenovacionDao(db: IrmexDatabase) = db.renovacionDao()
 }

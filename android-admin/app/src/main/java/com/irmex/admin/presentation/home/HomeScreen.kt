@@ -6,7 +6,6 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.DirectionsBus
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,7 +26,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.layout.Box
-import com.irmex.admin.presentation.estaciones.EstacionesScreen
 import com.irmex.admin.presentation.renovaciones.RenovacionesScreen
 import com.irmex.admin.presentation.tarjetas.TarjetasScreen
 import com.irmex.admin.presentation.tickets.TicketsScreen
@@ -35,7 +33,6 @@ import com.irmex.admin.presentation.tickets.TicketsScreen
 private enum class Pestana(val titulo: String, val icono: ImageVector) {
     RESUMEN("Resumen", Icons.Filled.Dashboard),
     TARJETAS("Tarjetas", Icons.Filled.CreditCard),
-    ESTACIONES("Estaciones", Icons.Filled.DirectionsBus),
     TICKETS("Soporte", Icons.Filled.SupportAgent),
     RENOVACIONES("Renovaciones", Icons.Filled.ConfirmationNumber),
 }
@@ -76,7 +73,6 @@ fun HomeScreen(onCerrarSesion: () -> Unit) {
             when (seleccionada) {
                 Pestana.RESUMEN -> ResumenScreen(snackbar)
                 Pestana.TARJETAS -> TarjetasScreen(snackbar)
-                Pestana.ESTACIONES -> EstacionesScreen(snackbar)
                 Pestana.TICKETS -> TicketsScreen(snackbar)
                 Pestana.RENOVACIONES -> RenovacionesScreen(snackbar)
             }

@@ -4,7 +4,6 @@ import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Roles
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.repository.AuthRepository
-import com.irmex.admin.domain.repository.EstacionRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
@@ -48,14 +47,6 @@ class ObservarTarjetasUseCase @Inject constructor(private val repo: TarjetaRepos
 }
 
 class RefrescarTarjetasUseCase @Inject constructor(private val repo: TarjetaRepository) {
-    suspend operator fun invoke() = repo.refrescar()
-}
-
-class ObservarEstacionesUseCase @Inject constructor(private val repo: EstacionRepository) {
-    operator fun invoke() = repo.observar()
-}
-
-class RefrescarEstacionesUseCase @Inject constructor(private val repo: EstacionRepository) {
     suspend operator fun invoke() = repo.refrescar()
 }
 

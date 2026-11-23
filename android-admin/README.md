@@ -17,7 +17,7 @@ Room (caché offline) · DataStore (sesión) · Coroutines + Flow/StateFlow.
 
 ## Flujo offline
 La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refrescar se descarga del servidor y se reemplaza
-la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, estaciones, tickets y
+la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, tickets y
 renovaciones pendientes.
 
 ## Control de acceso

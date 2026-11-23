@@ -16,9 +16,6 @@ interface IrmexApi {
     @GET("api/tarjetas")
     suspend fun tarjetas(): List<TarjetaDto>
 
-    @GET("api/estaciones")
-    suspend fun estaciones(): List<EstacionDto>
-
     @GET("api/admin/tickets")
     suspend fun tickets(): List<TicketDto>
 

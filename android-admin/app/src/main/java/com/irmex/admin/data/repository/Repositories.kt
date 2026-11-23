@@ -1,6 +1,5 @@
 package com.irmex.admin.data.repository
 
-import com.irmex.admin.data.local.EstacionDao
 import com.irmex.admin.data.local.IrmexDatabase
 import com.irmex.admin.data.local.RenovacionDao
 import com.irmex.admin.data.local.SessionDataStore
@@ -16,7 +15,6 @@ import com.irmex.admin.data.toEntity
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.repository.AuthRepository
-import com.irmex.admin.domain.repository.EstacionRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
@@ -72,19 +70,6 @@ class TarjetaRepositoryImpl @Inject constructor(
 
     override suspend fun refrescar(): Outcome<Unit> = safeCall {
         dao.reemplazar(api.tarjetas().map { it.toEntity() })
-    }
-}
-
-@Singleton
-class EstacionRepositoryImpl @Inject constructor(
-    private val api: IrmexApi,
-    private val dao: EstacionDao,
-) : EstacionRepository {
-
-    override fun observar() = dao.observar().map { lista -> lista.map { it.toDomain() } }
-
-    override suspend fun refrescar(): Outcome<Unit> = safeCall {
-        dao.reemplazar(api.estaciones().map { it.toEntity() })
     }
 }
 

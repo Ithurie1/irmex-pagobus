@@ -1,15 +1,12 @@
 package com.irmex.admin.data
 
-import com.irmex.admin.data.local.EstacionEntity
 import com.irmex.admin.data.local.RenovacionEntity
 import com.irmex.admin.data.local.TarjetaEntity
 import com.irmex.admin.data.local.TicketEntity
-import com.irmex.admin.data.remote.EstacionDto
 import com.irmex.admin.data.remote.RenovacionDto
 import com.irmex.admin.data.remote.ResumenDto
 import com.irmex.admin.data.remote.TarjetaDto
 import com.irmex.admin.data.remote.TicketDto
-import com.irmex.admin.domain.model.Estacion
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
 import com.irmex.admin.domain.model.Tarjeta
@@ -23,13 +20,6 @@ fun TarjetaDto.toEntity() = TarjetaEntity(
     estatus = estatus.orEmpty(),
     vigencia = vigencia.orEmpty(),
     propietario = propietario.orEmpty(),
-)
-
-fun EstacionDto.toEntity() = EstacionEntity(
-    id = id,
-    nombre = nombre.orEmpty(),
-    tipo = tipo.orEmpty(),
-    estatus = estatus.orEmpty(),
 )
 
 fun TicketDto.toEntity(orden: Int) = TicketEntity(
@@ -63,6 +53,5 @@ fun ResumenDto.toDomain() = ResumenGeneral(
 
 // Entity (Room) -> Dominio
 fun TarjetaEntity.toDomain() = Tarjeta(id, numero, saldo, estatus, vigencia, propietario)
-fun EstacionEntity.toDomain() = Estacion(id, nombre, tipo, estatus)
 fun TicketEntity.toDomain() = Ticket(id, remitente, correo, asunto, mensaje, fecha, revisado, importante, respuesta)
 fun RenovacionEntity.toDomain() = Renovacion(id, nombreUsuario, correo, fecha, nombreArchivo)
