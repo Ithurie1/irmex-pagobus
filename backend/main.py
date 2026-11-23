@@ -48,6 +48,20 @@ os.makedirs(DOCS_SEGUROS_DIR, exist_ok=True)
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
+# Bootstrap del primer superadmin: si ADMIN_EMAIL está definida (en Render) y esa
+# cuenta ya está registrada, se le asigna el rol superadmin al arrancar.
+_admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
+if _admin_email:
+    _db = SessionLocal()
+    try:
+        _u = _db.query(models.Usuario).filter(func.lower(models.Usuario.correo) == _admin_email).first()
+        if _u and _u.rol != "superadmin":
+            _u.rol = "superadmin"
+            _u.es_estudiante = False
+            _db.commit()
+    finally:
+        _db.close()
+
 # =========================================================
 # MONTAJE DE ARCHIVOS ESTÁTICOS (CSS, JS, imágenes y documentos seguros)
 # =========================================================
