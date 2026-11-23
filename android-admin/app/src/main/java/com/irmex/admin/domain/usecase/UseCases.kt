@@ -19,7 +19,8 @@ const val MENSAJE_SOLO_ESTUDIANTES =
 class LoginUseCase @Inject constructor(private val auth: AuthRepository) {
     suspend operator fun invoke(correo: String, password: String): Outcome<Session> {
         if (correo.isBlank()) return Outcome.Failure("El correo llegó vacío. Escríbelo de nuevo.")
-        if (password.isBlank()) return Outcome.Failure("La contraseña llegó vacía. Escríbela de nuevo.")
+        // La contraseña no se recorta ni se trata como "en blanco": puede contener espacios.
+        if (password.isEmpty()) return Outcome.Failure("Escribe tu contraseña.")
         return when (val resultado = auth.login(correo.trim(), password)) {
             is Outcome.Failure -> resultado
             is Outcome.Success -> {
