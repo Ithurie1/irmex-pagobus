@@ -13,7 +13,7 @@ async function cargarTicketsBuzon() {
     contenedor.innerHTML = "<p style='padding: 20px; color: gray;'>Cargando mensajes...</p>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets', {
+        const response = await fetch('/api/admin/tickets', {
             headers: authHeaders()
         });
         ticketsGlobales = await response.json();
@@ -86,7 +86,7 @@ function renderizarLista() {
 
 async function alternarImportancia(event, id, nuevoEstado) {
     event.stopPropagation();
-    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?importante=${nuevoEstado}`, {
+    await fetch(`/api/admin/tickets/${id}/acciones?importante=${nuevoEstado}`, {
         method: 'PUT',
         headers: authHeaders()
     });
@@ -97,7 +97,7 @@ async function alternarImportancia(event, id, nuevoEstado) {
 
 async function alternarLeido(event, id, nuevoEstado) {
     event.stopPropagation();
-    await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/acciones?revisado=${nuevoEstado}`, {
+    await fetch(`/api/admin/tickets/${id}/acciones?revisado=${nuevoEstado}`, {
         method: 'PUT',
         headers: authHeaders()
     });
@@ -112,7 +112,7 @@ async function eliminarTicket(event, id) {
     if (!seguro) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}`, {
+        const response = await fetch(`/api/admin/tickets/${id}`, {
             method: 'DELETE',
             headers: authHeaders()
         });
@@ -154,7 +154,7 @@ async function abrirModalLectura(id) {
 
     if (!ticket.revisado) {
         try {
-            await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/leer`, {
+            await fetch(`/api/admin/tickets/${id}/leer`, {
                 method: 'PUT',
                 headers: authHeaders()
             });
@@ -183,7 +183,7 @@ async function enviarRespuesta() {
     }
 
     try {
-        const res = await fetch(`http://127.0.0.1:8000/api/admin/tickets/${id}/responder`, {
+        const res = await fetch(`/api/admin/tickets/${id}/responder`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ respuesta: respuesta })

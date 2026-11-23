@@ -9,7 +9,7 @@ async function cargarHistorial() {
         const token = localStorage.getItem('token');
 
         // 1. Primero averiguamos qué tarjeta tiene el estudiante
-        const resTarjetas = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
+        const resTarjetas = await fetch('/api/mis-tarjetas', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const tarjetas = await resTarjetas.json();
@@ -28,7 +28,7 @@ async function cargarHistorial() {
             tituloArriba.innerText = `💳 Tarjeta terminación: **** ${ultimosDigitos}`;
         }
         // 2. Buscamos el historial de ESA tarjeta usando tu ruta original
-        const resHistorial = await fetch(`http://127.0.0.1:8000/api/historial/${tarjetaId}`, {
+        const resHistorial = await fetch(`/api/historial/${tarjetaId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const datos = await resHistorial.json();

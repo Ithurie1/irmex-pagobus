@@ -43,7 +43,7 @@ async function cargarMiniPerfil() {
 
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
+        const res = await fetch(`/api/perfil/${correoUsuario}`, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         if (res.ok) {
@@ -88,7 +88,7 @@ function toggleTarjeta() {
 async function cargarTarjetasBilletera() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
+        const response = await fetch('/api/mis-tarjetas', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -198,7 +198,7 @@ async function enviarTicket(event) {
     }
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/soporte/ticket', {
+        const response = await fetch('/api/soporte/ticket', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }, // Form-data autodefine boundary
             body: formData
@@ -234,7 +234,7 @@ async function cargarMisReportes() {
 
     contenedor.innerHTML = "<p>Cargando reportes...</p>";
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/soporte/mis-tickets', {
+        const response = await fetch('/api/soporte/mis-tickets', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (response.ok) {
@@ -280,7 +280,7 @@ async function cargarMisReportes() {
 async function cargarNotificacionesAdmin() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://127.0.0.1:8000/api/admin/tickets/no-leidos', {
+        const response = await fetch('/api/admin/tickets/no-leidos', {
             headers: { 'Authorization': 'Bearer ' + token }
         });
         if (response.ok) {

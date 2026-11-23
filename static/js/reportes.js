@@ -9,7 +9,7 @@ let myChart = null;
 
 async function cargarReportes() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/reportes/general', {
+        const response = await fetch('/api/reportes/general', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
         const data = await response.json();
@@ -90,7 +90,7 @@ function dibujarGrafica(ingresos, gastos) {
 
 async function cargarLogs() {
     try {
-        const res = await fetch('http://127.0.0.1:8000/api/logs', {
+        const res = await fetch('/api/logs', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
         if (res.ok) {
@@ -133,7 +133,7 @@ async function exportarFinanzas(event) {
     const filtro = filtroSelect ? filtroSelect.value : 'total';
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/admin/finanzas/exportar?filtro=${filtro}`, {
+        const response = await fetch(`/api/admin/finanzas/exportar?filtro=${filtro}`, {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
 
@@ -170,7 +170,7 @@ async function exportarAuditoria(event) {
     }
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/admin/auditoria/exportar', {
+        const response = await fetch('/api/admin/auditoria/exportar', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
 

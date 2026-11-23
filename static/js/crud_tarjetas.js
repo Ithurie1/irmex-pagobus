@@ -8,7 +8,7 @@ async function cargarTarjetas() {
     tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Cargando...</td></tr>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
+        const response = await fetch('/api/tarjetas', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
         const tarjetas = await response.json();
@@ -47,7 +47,7 @@ async function ajustarVigencia(id) {
         const diasInt = parseInt(diasInput);
 
         if (!isNaN(diasInt)) {
-            await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/vigencia`, {
+            await fetch(`/api/tarjetas/${id}/vigencia`, {
                 method: 'PUT',
                 headers: {
                     "Content-Type": "application/json",
@@ -74,7 +74,7 @@ async function borrarTarjeta(id) {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/borrar-seguro`, {
+        const response = await fetch(`/api/tarjetas/${id}/borrar-seguro`, {
             method: 'DELETE',
             headers: {
                 "Content-Type": "application/json",
@@ -111,7 +111,7 @@ async function recargaEmergencia(id) {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/recarga-manual`, {
+        const response = await fetch(`/api/tarjetas/${id}/recarga-manual`, {
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -146,7 +146,7 @@ async function cambiarEstatus(id, estatusActual) {
     }
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/tarjetas/${id}/estatus-seguro`, {
+        const response = await fetch(`/api/tarjetas/${id}/estatus-seguro`, {
             method: 'PUT',
             headers: {
                 "Content-Type": "application/json",
@@ -179,7 +179,7 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
     msg.innerText = "Guardando...";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/tarjetas', {
+        const response = await fetch('/api/tarjetas', {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -217,7 +217,7 @@ document.getElementById('formCrearTarjeta').addEventListener('submit', async (e)
 // Cargar select de estudiantes
 async function cargarEstudiantes() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/estudiantes', {
+        const response = await fetch('/api/estudiantes', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
         const estudiantes = await response.json();

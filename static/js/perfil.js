@@ -8,7 +8,7 @@ let fotoBase64 = "";
 const authHeaders = () => ({ 'Authorization': 'Bearer ' + localStorage.getItem('token') });
 
 async function cargarPerfil() {
-    const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
+    const res = await fetch(`/api/perfil/${correoUsuario}`, {
         headers: authHeaders()
     });
     const data = await res.json();
@@ -73,7 +73,7 @@ async function guardarPerfil() {
         foto_perfil: fotoBase64
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/perfil/${correoUsuario}`, {
+    const res = await fetch(`/api/perfil/${correoUsuario}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(datosEditados)

@@ -19,7 +19,7 @@ document.getElementById('formRenovacion').addEventListener('submit', async (e) =
 
     try {
         // NOTA: Cuando se envía FormData, NO ponemos 'Content-Type' en los headers, Fetch lo hace automático.
-        const response = await fetch('http://127.0.0.1:8000/api/solicitar-renovacion', {
+        const response = await fetch('/api/solicitar-renovacion', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
