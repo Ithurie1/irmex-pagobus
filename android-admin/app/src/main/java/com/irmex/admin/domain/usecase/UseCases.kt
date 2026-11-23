@@ -18,9 +18,8 @@ const val MENSAJE_SOLO_ESTUDIANTES =
 /** Valida credenciales y bloquea el acceso a roles que no sean administrativos. */
 class LoginUseCase @Inject constructor(private val auth: AuthRepository) {
     suspend operator fun invoke(correo: String, password: String): Outcome<Session> {
-        if (correo.isBlank() || password.isBlank()) {
-            return Outcome.Failure("Escribe tu correo y contraseña.")
-        }
+        if (correo.isBlank()) return Outcome.Failure("El correo llegó vacío. Escríbelo de nuevo.")
+        if (password.isBlank()) return Outcome.Failure("La contraseña llegó vacía. Escríbela de nuevo.")
         return when (val resultado = auth.login(correo.trim(), password)) {
             is Outcome.Failure -> resultado
             is Outcome.Success -> {
