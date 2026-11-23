@@ -14,7 +14,7 @@ document.getElementById('registroForm').addEventListener('submit', async functio
     mensajeElemento.style.color = "var(--gris-texto)";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/registro', {
+        const response = await fetch('/api/registro', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

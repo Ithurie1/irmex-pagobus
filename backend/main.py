@@ -63,6 +63,10 @@ ORIGENES_PERMITIDOS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+# URL pública del sitio (ej. https://irmex-pagobus.onrender.com), definida en Render
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+if BASE_URL not in ORIGENES_PERMITIDOS:
+    ORIGENES_PERMITIDOS.append(BASE_URL)
 
 app.add_middleware(
     CORSMiddleware,
@@ -360,7 +364,7 @@ def enviar_correo_recuperacion(datos: RecuperarRequest, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Correo no encontrado en el sistema.")
 
     # --- Construir enlace de restablecimiento ---
-    enlace = f"http://127.0.0.1:8000/restablecer.html?correo={datos.correo}"
+    enlace = f"{BASE_URL}/restablecer.html?correo={datos.correo}"
 
     # --- Construir el mensaje MIME ---
     mensaje = MIMEMultipart("alternative")

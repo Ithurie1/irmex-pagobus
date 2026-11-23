@@ -12,7 +12,7 @@ async function cargarDatosTarjeta() {
             return;
         }
 
-        const res = await fetch('http://127.0.0.1:8000/api/mis-tarjetas', {
+        const res = await fetch('/api/mis-tarjetas', {
             headers: { "Authorization": "Bearer " + localStorage.getItem("token") }
         });
 
@@ -108,7 +108,7 @@ async function realizarRecarga(e) {
 
     try {
         // Hacer el cobro en el backend
-        const response = await fetch('http://127.0.0.1:8000/api/recargar', {
+        const response = await fetch('/api/recargar', {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",

@@ -9,7 +9,7 @@ document.getElementById('formRecuperar').addEventListener('submit', async (e) =>
     const correo = document.getElementById('correoRecuperar').value;
 
     try {
-        const res = await fetch('http://127.0.0.1:8000/api/recuperar-password', {
+        const res = await fetch('/api/recuperar-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ correo: correo })

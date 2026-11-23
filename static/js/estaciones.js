@@ -10,7 +10,7 @@ async function cargarEstaciones() {
     tbody.innerHTML = '';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/estaciones', {
+        const response = await fetch('/api/estaciones', {
             headers: authHeaders()
         });
         const estaciones = await response.json();
@@ -46,7 +46,7 @@ document.getElementById('formEstacion').addEventListener('submit', async (e) => 
     const tipo = document.getElementById('tipoEstacion').value;
 
     try {
-        const res = await fetch('http://127.0.0.1:8000/api/estaciones', {
+        const res = await fetch('/api/estaciones', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ nombre, tipo })
@@ -67,7 +67,7 @@ document.getElementById('formEstacion').addEventListener('submit', async (e) => 
 // Cambiar estatus
 async function cambiarEstatus(id) {
     try {
-        await fetch(`http://127.0.0.1:8000/api/estaciones/${id}`, {
+        await fetch(`/api/estaciones/${id}`, {
             method: 'PUT',
             headers: authHeaders()
         });

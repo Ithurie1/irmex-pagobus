@@ -29,7 +29,7 @@ async function cargarUsuarios() {
     tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Cargando estudiantes...</td></tr>";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/usuarios_completos', {
+        const response = await fetch('/api/usuarios_completos', {
             headers: authHeaders()
         });
         const usuarios = await response.json();
@@ -78,7 +78,7 @@ async function darDeBaja(id) {
     if (!confirmacion) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/usuarios/${id}`, {
+        const response = await fetch(`/api/usuarios/${id}`, {
             method: 'DELETE',
             headers: authHeaders()
         });

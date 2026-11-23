@@ -9,7 +9,7 @@ async function cargarSolicitudes() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando solicitudes...</td></tr>';
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/renovaciones/pendientes', {
+        const response = await fetch('/api/renovaciones/pendientes', {
             headers: authHeaders()
         });
         const datos = await response.json();
@@ -21,7 +21,7 @@ async function cargarSolicitudes() {
 
         tbody.innerHTML = '';
         datos.forEach(req => {
-            const urlDocumento = `http://127.0.0.1:8000/documentos_seguros/${req.nombre_archivo}`;
+            const urlDocumento = `/documentos_seguros/${req.nombre_archivo}`;
 
             tbody.innerHTML += `
                 <tr>
@@ -48,7 +48,7 @@ async function procesarSolicitud(id, estatus) {
     if (!confirm(`¿Estás seguro de marcar esta solicitud como ${estatus}?`)) return;
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/renovaciones/${id}`, {
+        const response = await fetch(`/api/renovaciones/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ estatus: estatus })

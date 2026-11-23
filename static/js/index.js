@@ -12,7 +12,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     mensajeElemento.style.color = "var(--gris-texto)";
 
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/login', {
+        const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ correo: correo, password: password })
