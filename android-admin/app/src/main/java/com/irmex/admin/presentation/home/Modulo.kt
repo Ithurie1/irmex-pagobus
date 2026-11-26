@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.ConfirmationNumber
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -23,4 +24,5 @@ enum class Modulo(
     REPORTES("reportes", "Reportes de Uso", "Métricas financieras y de tarjetas.", Icons.Filled.BarChart),
     DOCUMENTOS("documentos", "Verificar Documentos", "Aprueba o rechaza renovaciones.", Icons.Filled.ConfirmationNumber),
     SOPORTE("soporte", "Centro de Soporte", "Atiende tickets de los alumnos.", Icons.Filled.SupportAgent),
+    PERFIL("perfil", "Mi Perfil", "Modifica tus datos personales y de contacto.", Icons.Filled.Person),
 }

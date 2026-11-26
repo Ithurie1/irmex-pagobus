@@ -4,6 +4,18 @@ data class Session(
     val token: String,
     val nombre: String,
     val rol: String,
+    val correo: String = "",
+)
+
+data class Perfil(
+    val nombre: String,
+    val correo: String,
+    val curp: String,
+    val calle: String,
+    val numero: String,
+    val colonia: String,
+    val cp: String,
+    val fechaRegistro: String,
 )
 
 data class Tarjeta(

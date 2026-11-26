@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -52,6 +53,8 @@ fun TarjetasScreen(snackbar: SnackbarHostState, viewModel: TarjetasViewModel = h
     MensajesEffect(viewModel.mensajes, snackbar)
 
     Scaffold(
+        // El marco del módulo ya respeta las barras del sistema; aquí no se duplica el margen.
+        contentWindowInsets = WindowInsets(0),
         floatingActionButton = {
             FloatingActionButton(onClick = { viewModel.abrir(DialogoTarjeta.Alta) }) {
                 Icon(Icons.Filled.Add, contentDescription = "Registrar tarjeta")

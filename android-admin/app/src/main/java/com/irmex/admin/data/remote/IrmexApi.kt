@@ -62,6 +62,12 @@ interface IrmexApi {
     @PUT("api/usuarios/{id}/rol")
     suspend fun cambiarRol(@Path("id") id: Int, @Body body: CambioRolRequest)
 
+    @GET("api/perfil/{correo}")
+    suspend fun perfil(@Path("correo") correo: String): PerfilDto
+
+    @PUT("api/perfil/{correo}")
+    suspend fun actualizarPerfil(@Path("correo") correo: String, @Body body: PerfilUpdateRequest)
+
     @GET("api/reportes/general")
     suspend fun resumenGeneral(): ResumenDto
 }

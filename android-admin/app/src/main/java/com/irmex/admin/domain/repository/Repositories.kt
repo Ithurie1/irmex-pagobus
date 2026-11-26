@@ -1,6 +1,7 @@
 package com.irmex.admin.domain.repository
 
 import com.irmex.admin.domain.model.Outcome
+import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
 import com.irmex.admin.domain.model.Session
@@ -47,4 +48,10 @@ interface UsuarioRepository {
     suspend fun refrescar(): Outcome<Unit>
     suspend fun darDeBaja(id: Int): Outcome<Unit>
     suspend fun cambiarRol(id: Int, nuevoRol: String, nip: String): Outcome<Unit>
+}
+
+interface PerfilRepository {
+    fun observar(): Flow<Perfil?>
+    suspend fun refrescar(): Outcome<Unit>
+    suspend fun guardar(perfil: Perfil): Outcome<Unit>
 }

@@ -79,3 +79,25 @@ data class RecargaManualRequest(
 )
 
 data class AccionSeguraRequest(@SerializedName("pin_seguridad") val nip: String)
+
+data class PerfilDto(
+    val nombre: String?,
+    val correo: String?,
+    val curp: String?,
+    val calle: String?,
+    val numero: String?,
+    val colonia: String?,
+    val cp: String?,
+    @SerializedName("fecha_registro") val fechaRegistro: String?,
+)
+
+/** La foto no se envía (null): el servidor conserva la que ya tenga. */
+data class PerfilUpdateRequest(
+    val nombre: String,
+    val curp: String,
+    val calle: String,
+    val numero: String,
+    val colonia: String,
+    val cp: String,
+    @SerializedName("foto_perfil") val fotoPerfil: String? = null,
+)

@@ -1,6 +1,7 @@
 package com.irmex.admin.data.repository
 
 import com.irmex.admin.data.local.IrmexDatabase
+import com.irmex.admin.data.local.PerfilDao
 import com.irmex.admin.data.local.RenovacionDao
 import com.irmex.admin.data.local.SessionDataStore
 import com.irmex.admin.data.local.TarjetaDao
@@ -11,6 +12,7 @@ import com.irmex.admin.data.remote.CambioRolRequest
 import com.irmex.admin.data.remote.EstatusRenovacionRequest
 import com.irmex.admin.data.remote.IrmexApi
 import com.irmex.admin.data.remote.LoginRequest
+import com.irmex.admin.data.remote.PerfilUpdateRequest
 import com.irmex.admin.data.remote.RecargaManualRequest
 import com.irmex.admin.data.remote.RespuestaTicketRequest
 import com.irmex.admin.data.remote.TarjetaCrearRequest
@@ -19,8 +21,10 @@ import com.irmex.admin.data.remote.safeCall
 import com.irmex.admin.data.toDomain
 import com.irmex.admin.data.toEntity
 import com.irmex.admin.domain.model.Outcome
+import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.repository.AuthRepository
+import com.irmex.admin.domain.repository.PerfilRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
@@ -28,6 +32,7 @@ import com.irmex.admin.domain.repository.TicketRepository
 import com.irmex.admin.domain.repository.UsuarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -52,7 +57,7 @@ class AuthRepositoryImpl @Inject constructor(
                 if (token.isNullOrBlank()) {
                     Outcome.Failure("El servidor no devolvió una sesión válida.")
                 } else {
-                    val sesion = Session(token, body.nombre.orEmpty(), body.rol.orEmpty())
+                    val sesion = Session(token, body.nombre.orEmpty(), body.rol.orEmpty(), correo)
                     sessionStore.guardar(sesion)
                     Outcome.Success(sesion)
                 }
@@ -166,6 +171,34 @@ class UsuarioRepositoryImpl @Inject constructor(
 
     override suspend fun cambiarRol(id: Int, nuevoRol: String, nip: String): Outcome<Unit> {
         val resultado = safeCall { api.cambiarRol(id, CambioRolRequest(nuevoRol, nip)) }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
+    }
+}
+
+@Singleton
+class PerfilRepositoryImpl @Inject constructor(
+    private val api: IrmexApi,
+    private val dao: PerfilDao,
+    private val sessionStore: SessionDataStore,
+) : PerfilRepository {
+
+    override fun observar() = dao.observar().map { it?.toDomain() }
+
+    override suspend fun refrescar(): Outcome<Unit> {
+        val correo = sessionStore.session.first()?.correo.orEmpty()
+        if (correo.isEmpty()) return Outcome.Failure("Vuelve a iniciar sesión para ver tu perfil.")
+        return safeCall { dao.guardar(api.perfil(correo).toEntity(correo)) }
+    }
+
+    override suspend fun guardar(perfil: Perfil): Outcome<Unit> {
+        val correo = sessionStore.session.first()?.correo.orEmpty()
+        if (correo.isEmpty()) return Outcome.Failure("Vuelve a iniciar sesión para editar tu perfil.")
+        val resultado = safeCall {
+            api.actualizarPerfil(
+                correo,
+                PerfilUpdateRequest(perfil.nombre, perfil.curp, perfil.calle, perfil.numero, perfil.colonia, perfil.cp),
+            )
+        }
         return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
     }
 }

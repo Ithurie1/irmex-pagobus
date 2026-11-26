@@ -1,12 +1,14 @@
 package com.irmex.admin.di
 
 import com.irmex.admin.data.repository.AuthRepositoryImpl
+import com.irmex.admin.data.repository.PerfilRepositoryImpl
 import com.irmex.admin.data.repository.RenovacionRepositoryImpl
 import com.irmex.admin.data.repository.ResumenRepositoryImpl
 import com.irmex.admin.data.repository.TarjetaRepositoryImpl
 import com.irmex.admin.data.repository.TicketRepositoryImpl
 import com.irmex.admin.data.repository.UsuarioRepositoryImpl
 import com.irmex.admin.domain.repository.AuthRepository
+import com.irmex.admin.domain.repository.PerfilRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
@@ -25,5 +27,6 @@ abstract class RepositoryModule {
     @Binds abstract fun tickets(impl: TicketRepositoryImpl): TicketRepository
     @Binds abstract fun renovaciones(impl: RenovacionRepositoryImpl): RenovacionRepository
     @Binds abstract fun usuarios(impl: UsuarioRepositoryImpl): UsuarioRepository
+    @Binds abstract fun perfil(impl: PerfilRepositoryImpl): PerfilRepository
     @Binds abstract fun resumen(impl: ResumenRepositoryImpl): ResumenRepository
 }

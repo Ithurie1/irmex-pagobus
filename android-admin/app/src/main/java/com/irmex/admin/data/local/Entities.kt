@@ -45,3 +45,15 @@ data class UsuarioEntity(
     val estatusTarjeta: String,
     val rol: String,
 )
+
+@Entity(tableName = "perfil")
+data class PerfilEntity(
+    @PrimaryKey val correo: String,
+    val nombre: String,
+    val curp: String,
+    val calle: String,
+    val numero: String,
+    val colonia: String,
+    val cp: String,
+    val fechaRegistro: String,
+)

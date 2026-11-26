@@ -81,3 +81,12 @@ abstract class UsuarioDao {
         insertar(items)
     }
 }
+
+@Dao
+abstract class PerfilDao {
+    @Query("SELECT * FROM perfil LIMIT 1")
+    abstract fun observar(): Flow<PerfilEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun guardar(perfil: PerfilEntity)
+}

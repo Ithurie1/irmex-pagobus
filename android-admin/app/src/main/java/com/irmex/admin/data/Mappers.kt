@@ -1,14 +1,17 @@
 package com.irmex.admin.data
 
+import com.irmex.admin.data.local.PerfilEntity
 import com.irmex.admin.data.local.RenovacionEntity
 import com.irmex.admin.data.local.TarjetaEntity
 import com.irmex.admin.data.local.TicketEntity
 import com.irmex.admin.data.local.UsuarioEntity
+import com.irmex.admin.data.remote.PerfilDto
 import com.irmex.admin.data.remote.RenovacionDto
 import com.irmex.admin.data.remote.ResumenDto
 import com.irmex.admin.data.remote.TarjetaDto
 import com.irmex.admin.data.remote.TicketDto
 import com.irmex.admin.data.remote.UsuarioDto
+import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
 import com.irmex.admin.domain.model.Tarjeta
@@ -68,3 +71,16 @@ fun UsuarioDto.toEntity() = UsuarioEntity(
 )
 
 fun UsuarioEntity.toDomain() = Usuario(id, nombre, correo, estatusTarjeta, rol)
+
+fun PerfilDto.toEntity(correoSesion: String) = PerfilEntity(
+    correo = correo ?: correoSesion,
+    nombre = nombre.orEmpty(),
+    curp = curp.orEmpty(),
+    calle = calle.orEmpty(),
+    numero = numero.orEmpty(),
+    colonia = colonia.orEmpty(),
+    cp = cp.orEmpty(),
+    fechaRegistro = fechaRegistro.orEmpty(),
+)
+
+fun PerfilEntity.toDomain() = Perfil(nombre, correo, curp, calle, numero, colonia, cp, fechaRegistro)

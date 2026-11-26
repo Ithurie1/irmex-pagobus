@@ -9,7 +9,8 @@ Room (caché offline) · DataStore (sesión) · Coroutines + Flow/StateFlow.
 
 ## Módulos
 Menú de inicio con una tarjeta por módulo (igual que el panel web): Gestión de Tarjetas, Estatus de Usuario,
-Gestor de Privilegios (solo superadmin, cambio de rol con NIP), Reportes de Uso, Verificar Documentos y Centro de Soporte.
+Gestor de Privilegios (solo superadmin, cambio de rol con NIP), Reportes de Uso, Verificar Documentos, Centro de Soporte y Mi Perfil.
+La gestión de tarjetas incluye alta, ajuste de vigencia, recarga manual, bloqueo y borrado (las acciones sensibles piden el NIP maestro).
 
 ## Arquitectura (`app/src/main/java/com/irmex/admin`)
 | Capa | Contenido |

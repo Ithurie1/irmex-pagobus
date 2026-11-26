@@ -1,9 +1,11 @@
 package com.irmex.admin.domain.usecase
 
 import com.irmex.admin.domain.model.Outcome
+import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Roles
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.repository.AuthRepository
+import com.irmex.admin.domain.repository.PerfilRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
@@ -145,5 +147,25 @@ class BorrarTarjetaUseCase @Inject constructor(private val repo: TarjetaReposito
     suspend operator fun invoke(id: Int, nip: String): Outcome<Unit> {
         if (nip.isEmpty()) return Outcome.Failure("Escribe el NIP maestro para autorizar.")
         return repo.borrar(id, nip)
+    }
+}
+
+// ---------------- Mi perfil ----------------
+
+class ObservarPerfilUseCase @Inject constructor(private val repo: PerfilRepository) {
+    operator fun invoke() = repo.observar()
+}
+
+class RefrescarPerfilUseCase @Inject constructor(private val repo: PerfilRepository) {
+    suspend operator fun invoke() = repo.refrescar()
+}
+
+class GuardarPerfilUseCase @Inject constructor(private val repo: PerfilRepository) {
+    suspend operator fun invoke(perfil: Perfil): Outcome<Unit> {
+        if (perfil.nombre.isBlank()) return Outcome.Failure("El nombre no puede estar vacío.")
+        if (perfil.curp.isNotEmpty() && perfil.curp.length != 18) {
+            return Outcome.Failure("La CURP debe tener 18 caracteres.")
+        }
+        return repo.guardar(perfil)
     }
 }
