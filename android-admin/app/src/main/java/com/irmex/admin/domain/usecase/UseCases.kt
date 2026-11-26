@@ -1,10 +1,12 @@
 package com.irmex.admin.domain.usecase
 
+import com.irmex.admin.domain.model.Documento
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Roles
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.repository.AuthRepository
+import com.irmex.admin.domain.repository.DocumentoRepository
 import com.irmex.admin.domain.repository.PerfilRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
@@ -167,5 +169,12 @@ class GuardarPerfilUseCase @Inject constructor(private val repo: PerfilRepositor
             return Outcome.Failure("La CURP debe tener 18 caracteres.")
         }
         return repo.guardar(perfil)
+    }
+}
+
+class ObtenerDocumentoUseCase @Inject constructor(private val repo: DocumentoRepository) {
+    suspend operator fun invoke(nombreArchivo: String): Outcome<Documento> {
+        if (nombreArchivo.isBlank()) return Outcome.Failure("Esta solicitud no tiene un documento asociado.")
+        return repo.obtener(nombreArchivo)
     }
 }
