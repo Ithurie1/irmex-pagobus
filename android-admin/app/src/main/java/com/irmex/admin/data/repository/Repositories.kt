@@ -58,8 +58,13 @@ class AuthRepositoryImpl @Inject constructor(
                     Outcome.Failure("El servidor no devolvió una sesión válida.")
                 } else {
                     val sesion = Session(token, body.nombre.orEmpty(), body.rol.orEmpty(), correo)
-                    sessionStore.guardar(sesion)
-                    Outcome.Success(sesion)
+                    // Guardar cifra el token con Keystore; si algo falla se avisa en lugar de cerrar la app.
+                    val guardado = safeCall { sessionStore.guardar(sesion) }
+                    if (guardado is Outcome.Failure) {
+                        Outcome.Failure("No se pudo guardar tu sesión de forma segura en este dispositivo.")
+                    } else {
+                        Outcome.Success(sesion)
+                    }
                 }
             }
         }
