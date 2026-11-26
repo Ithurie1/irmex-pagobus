@@ -6,6 +6,7 @@ import com.irmex.admin.domain.model.ResumenGeneral
 import com.irmex.admin.domain.model.Session
 import com.irmex.admin.domain.model.Tarjeta
 import com.irmex.admin.domain.model.Ticket
+import com.irmex.admin.domain.model.Usuario
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
@@ -34,4 +35,11 @@ interface RenovacionRepository {
 
 interface ResumenRepository {
     suspend fun obtener(): Outcome<ResumenGeneral>
+}
+
+interface UsuarioRepository {
+    fun observar(): Flow<List<Usuario>>
+    suspend fun refrescar(): Outcome<Unit>
+    suspend fun darDeBaja(id: Int): Outcome<Unit>
+    suspend fun cambiarRol(id: Int, nuevoRol: String, nip: String): Outcome<Unit>
 }

@@ -36,3 +36,12 @@ data class RenovacionEntity(
     val fecha: String,
     val nombreArchivo: String,
 )
+
+@Entity(tableName = "usuarios")
+data class UsuarioEntity(
+    @PrimaryKey val id: Int,
+    val nombre: String,
+    val correo: String,
+    val estatusTarjeta: String,
+    val rol: String,
+)

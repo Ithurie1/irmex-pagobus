@@ -50,3 +50,16 @@ data class ResumenDto(
 data class RespuestaTicketRequest(val respuesta: String)
 
 data class EstatusRenovacionRequest(val estatus: String)
+
+data class UsuarioDto(
+    val id: Int,
+    val nombre: String?,
+    val correo: String?,
+    @SerializedName("estatus_tarjeta") val estatusTarjeta: String?,
+    val rol: String?,
+)
+
+data class CambioRolRequest(
+    @SerializedName("nuevo_rol") val nuevoRol: String,
+    @SerializedName("nip_proporcionado") val nip: String,
+)

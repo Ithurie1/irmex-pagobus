@@ -3,14 +3,17 @@ package com.irmex.admin.data
 import com.irmex.admin.data.local.RenovacionEntity
 import com.irmex.admin.data.local.TarjetaEntity
 import com.irmex.admin.data.local.TicketEntity
+import com.irmex.admin.data.local.UsuarioEntity
 import com.irmex.admin.data.remote.RenovacionDto
 import com.irmex.admin.data.remote.ResumenDto
 import com.irmex.admin.data.remote.TarjetaDto
 import com.irmex.admin.data.remote.TicketDto
+import com.irmex.admin.data.remote.UsuarioDto
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
 import com.irmex.admin.domain.model.Tarjeta
 import com.irmex.admin.domain.model.Ticket
+import com.irmex.admin.domain.model.Usuario
 
 // DTO (red) -> Entity (Room). Se tolera cualquier campo nulo para no tronar con datos incompletos.
 fun TarjetaDto.toEntity() = TarjetaEntity(
@@ -55,3 +58,13 @@ fun ResumenDto.toDomain() = ResumenGeneral(
 fun TarjetaEntity.toDomain() = Tarjeta(id, numero, saldo, estatus, vigencia, propietario)
 fun TicketEntity.toDomain() = Ticket(id, remitente, correo, asunto, mensaje, fecha, revisado, importante, respuesta)
 fun RenovacionEntity.toDomain() = Renovacion(id, nombreUsuario, correo, fecha, nombreArchivo)
+
+fun UsuarioDto.toEntity() = UsuarioEntity(
+    id = id,
+    nombre = nombre.orEmpty(),
+    correo = correo.orEmpty(),
+    estatusTarjeta = estatusTarjeta.orEmpty(),
+    rol = rol ?: "estudiante",
+)
+
+fun UsuarioEntity.toDomain() = Usuario(id, nombre, correo, estatusTarjeta, rol)

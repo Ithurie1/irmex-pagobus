@@ -82,3 +82,13 @@ fun EstatusChip(estatus: String) {
         color = if (positivo) com.irmex.admin.presentation.theme.Verde else com.irmex.admin.presentation.theme.Rojo,
     )
 }
+
+/** Roles que el gestor de privilegios puede asignar (mismos valores que el backend). */
+val ROLES_ASIGNABLES = listOf("estudiante", "admin", "superadmin")
+
+fun etiquetaRol(rol: String): String = when (rol.lowercase()) {
+    "estudiante" -> "Estudiante"
+    "admin" -> "Administrador"
+    "superadmin" -> "Super Admin"
+    else -> rol
+}

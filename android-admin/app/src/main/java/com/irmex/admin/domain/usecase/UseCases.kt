@@ -8,6 +8,7 @@ import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
 import com.irmex.admin.domain.repository.TicketRepository
+import com.irmex.admin.domain.repository.UsuarioRepository
 import javax.inject.Inject
 
 const val MENSAJE_SOLO_ESTUDIANTES =
@@ -83,4 +84,24 @@ class ResolverRenovacionUseCase @Inject constructor(private val repo: Renovacion
 
 class ObtenerResumenUseCase @Inject constructor(private val repo: ResumenRepository) {
     suspend operator fun invoke() = repo.obtener()
+}
+
+class ObservarUsuariosUseCase @Inject constructor(private val repo: UsuarioRepository) {
+    operator fun invoke() = repo.observar()
+}
+
+class RefrescarUsuariosUseCase @Inject constructor(private val repo: UsuarioRepository) {
+    suspend operator fun invoke() = repo.refrescar()
+}
+
+class DarDeBajaUsuarioUseCase @Inject constructor(private val repo: UsuarioRepository) {
+    suspend operator fun invoke(id: Int) = repo.darDeBaja(id)
+}
+
+/** Cambia el rol de un usuario; el NIP lo valida el servidor (NIP maestro o NIP raíz). */
+class CambiarRolUseCase @Inject constructor(private val repo: UsuarioRepository) {
+    suspend operator fun invoke(id: Int, nuevoRol: String, nip: String): Outcome<Unit> {
+        if (nip.isEmpty()) return Outcome.Failure("Escribe el NIP para autorizar el cambio.")
+        return repo.cambiarRol(id, nuevoRol, nip)
+    }
 }

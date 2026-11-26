@@ -63,3 +63,21 @@ abstract class RenovacionDao {
         insertar(items)
     }
 }
+
+@Dao
+abstract class UsuarioDao {
+    @Query("SELECT * FROM usuarios ORDER BY nombre")
+    abstract fun observar(): Flow<List<UsuarioEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertar(items: List<UsuarioEntity>)
+
+    @Query("DELETE FROM usuarios")
+    abstract suspend fun borrarTodo()
+
+    @Transaction
+    open suspend fun reemplazar(items: List<UsuarioEntity>) {
+        borrarTodo()
+        insertar(items)
+    }
+}

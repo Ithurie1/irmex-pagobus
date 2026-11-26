@@ -7,6 +7,10 @@ App Android para **Administradores y Superadministradores** de IrMex. Consume el
 Kotlin 100% · Jetpack Compose + Material 3 · MVVM + Clean Architecture · Hilt · Retrofit + OkHttp (interceptor JWT) ·
 Room (caché offline) · DataStore (sesión) · Coroutines + Flow/StateFlow.
 
+## Módulos
+Menú de inicio con una tarjeta por módulo (igual que el panel web): Gestión de Tarjetas, Estatus de Usuario,
+Gestor de Privilegios (solo superadmin, cambio de rol con NIP), Reportes de Uso, Verificar Documentos y Centro de Soporte.
+
 ## Arquitectura (`app/src/main/java/com/irmex/admin`)
 | Capa | Contenido |
 |---|---|
@@ -17,7 +21,7 @@ Room (caché offline) · DataStore (sesión) · Coroutines + Flow/StateFlow.
 
 ## Flujo offline
 La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refrescar se descarga del servidor y se reemplaza
-la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, tickets y
+la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, usuarios, tickets y
 renovaciones pendientes.
 
 ## Control de acceso

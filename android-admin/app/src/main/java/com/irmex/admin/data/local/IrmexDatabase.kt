@@ -8,12 +8,14 @@ import androidx.room.RoomDatabase
         TarjetaEntity::class,
         TicketEntity::class,
         RenovacionEntity::class,
+        UsuarioEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class IrmexDatabase : RoomDatabase() {
     abstract fun tarjetaDao(): TarjetaDao
     abstract fun ticketDao(): TicketDao
     abstract fun renovacionDao(): RenovacionDao
+    abstract fun usuarioDao(): UsuarioDao
 }

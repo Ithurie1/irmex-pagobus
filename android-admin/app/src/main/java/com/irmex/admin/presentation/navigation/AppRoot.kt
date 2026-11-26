@@ -16,9 +16,10 @@ import com.irmex.admin.presentation.login.LoginScreen
 @Composable
 fun AppRoot(viewModel: AppViewModel = hiltViewModel()) {
     val haySesion by viewModel.haySesion.collectAsStateWithLifecycle()
+    val usuario by viewModel.usuario.collectAsStateWithLifecycle()
     when (haySesion) {
         null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-        true -> HomeScreen(onCerrarSesion = viewModel::cerrarSesion)
+        true -> HomeScreen(nombre = usuario.first, rol = usuario.second, onCerrarSesion = viewModel::cerrarSesion)
         false -> LoginScreen()
     }
 }

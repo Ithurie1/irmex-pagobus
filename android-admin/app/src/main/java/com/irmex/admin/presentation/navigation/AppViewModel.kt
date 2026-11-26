@@ -23,6 +23,11 @@ class AppViewModel @Inject constructor(
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /** Nombre y rol del administrador en sesión (para el saludo y para mostrar módulos según el rol). */
+    val usuario: StateFlow<Pair<String, String>> = observeSession()
+        .map { (it?.nombre ?: "") to (it?.rol ?: "") }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "" to "")
+
     fun cerrarSesion() {
         viewModelScope.launch { logout() }
     }

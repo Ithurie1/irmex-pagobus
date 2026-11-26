@@ -9,5 +9,7 @@ sealed interface Outcome<out T> {
 /** Roles que pueden usar esta app. */
 object Roles {
     val ADMINISTRATIVOS = setOf("admin", "superadmin")
+    const val SUPERADMIN = "superadmin"
+    fun esSuperadmin(rol: String?): Boolean = rol?.lowercase() == SUPERADMIN
     fun puedeEntrar(rol: String?): Boolean = rol != null && rol.lowercase() in ADMINISTRATIVOS
 }

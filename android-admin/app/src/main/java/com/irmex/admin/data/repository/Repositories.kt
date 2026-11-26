@@ -5,6 +5,8 @@ import com.irmex.admin.data.local.RenovacionDao
 import com.irmex.admin.data.local.SessionDataStore
 import com.irmex.admin.data.local.TarjetaDao
 import com.irmex.admin.data.local.TicketDao
+import com.irmex.admin.data.local.UsuarioDao
+import com.irmex.admin.data.remote.CambioRolRequest
 import com.irmex.admin.data.remote.EstatusRenovacionRequest
 import com.irmex.admin.data.remote.IrmexApi
 import com.irmex.admin.data.remote.LoginRequest
@@ -19,6 +21,7 @@ import com.irmex.admin.domain.repository.RenovacionRepository
 import com.irmex.admin.domain.repository.ResumenRepository
 import com.irmex.admin.domain.repository.TarjetaRepository
 import com.irmex.admin.domain.repository.TicketRepository
+import com.irmex.admin.domain.repository.UsuarioRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -116,6 +119,29 @@ class RenovacionRepositoryImpl @Inject constructor(
         } else {
             resultado.asUnit()
         }
+    }
+}
+
+@Singleton
+class UsuarioRepositoryImpl @Inject constructor(
+    private val api: IrmexApi,
+    private val dao: UsuarioDao,
+) : UsuarioRepository {
+
+    override fun observar() = dao.observar().map { lista -> lista.map { it.toDomain() } }
+
+    override suspend fun refrescar(): Outcome<Unit> = safeCall {
+        dao.reemplazar(api.usuarios().map { it.toEntity() })
+    }
+
+    override suspend fun darDeBaja(id: Int): Outcome<Unit> {
+        val resultado = safeCall { api.darDeBajaUsuario(id) }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
+    }
+
+    override suspend fun cambiarRol(id: Int, nuevoRol: String, nip: String): Outcome<Unit> {
+        val resultado = safeCall { api.cambiarRol(id, CambioRolRequest(nuevoRol, nip)) }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
     }
 }
 

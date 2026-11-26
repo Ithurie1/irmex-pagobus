@@ -42,3 +42,11 @@ data class ResumenGeneral(
     val totalIngresos: Double,
     val totalGastos: Double,
 )
+
+data class Usuario(
+    val id: Int,
+    val nombre: String,
+    val correo: String,
+    val estatusTarjeta: String,
+    val rol: String,
+)
