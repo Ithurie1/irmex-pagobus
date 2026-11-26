@@ -17,23 +17,25 @@ private val Context.dataStore by preferencesDataStore(name = "irmex_session")
 @Singleton
 class SessionDataStore @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val tokenCipher: TokenCipher,
 ) {
     private val tokenKey = stringPreferencesKey("token")
     private val nombreKey = stringPreferencesKey("nombre")
     private val rolKey = stringPreferencesKey("rol")
     private val correoKey = stringPreferencesKey("correo")
 
-    val token: Flow<String?> = context.dataStore.data.map { it[tokenKey] }
+    /** El token se guarda cifrado; aquí se entrega ya descifrado (o null si no hay sesión válida). */
+    val token: Flow<String?> = context.dataStore.data.map { prefs -> prefs[tokenKey]?.let(tokenCipher::descifrar) }
 
     val session: Flow<Session?> = context.dataStore.data.map { prefs ->
-        val token = prefs[tokenKey]
+        val token = prefs[tokenKey]?.let(tokenCipher::descifrar)
         if (token.isNullOrBlank()) null
         else Session(token, prefs[nombreKey].orEmpty(), prefs[rolKey].orEmpty(), prefs[correoKey].orEmpty())
     }
 
     suspend fun guardar(session: Session) {
         context.dataStore.edit {
-            it[tokenKey] = session.token
+            it[tokenKey] = tokenCipher.cifrar(session.token)
             it[nombreKey] = session.nombre
             it[rolKey] = session.rol
             it[correoKey] = session.correo

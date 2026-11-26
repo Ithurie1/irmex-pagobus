@@ -25,6 +25,10 @@ La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refre
 la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, usuarios, tickets y
 renovaciones pendientes.
 
+## Seguridad de la sesión
+El token JWT se guarda en DataStore **cifrado con AES-256-GCM**; la llave está en Android Keystore y no sale del dispositivo
+(`data/local/TokenCipher.kt`). Si el dato no se puede descifrar, la app lo trata como sesión cerrada y pide iniciar sesión.
+
 ## Control de acceso
 `LoginUseCase` revisa el campo `rol` de `/api/login`; solo `admin` y `superadmin` entran. Un estudiante ve un diálogo y no se
 guarda su sesión. Si el token expira (401) se cierra la sesión y se limpia la caché.
