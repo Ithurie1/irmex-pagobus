@@ -33,6 +33,8 @@ interface TicketRepository {
     suspend fun refrescar(): Outcome<Unit>
     suspend fun responder(id: Int, respuesta: String): Outcome<Unit>
     suspend fun marcarImportante(id: Int, importante: Boolean): Outcome<Unit>
+    suspend fun marcarLeido(id: Int, leido: Boolean): Outcome<Unit>
+    suspend fun eliminar(id: Int): Outcome<Unit>
 }
 
 interface RenovacionRepository {

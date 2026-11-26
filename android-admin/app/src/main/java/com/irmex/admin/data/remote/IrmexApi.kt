@@ -48,6 +48,9 @@ interface IrmexApi {
         @Query("revisado") revisado: Boolean? = null,
     )
 
+    @DELETE("api/admin/tickets/{id}")
+    suspend fun eliminarTicket(@Path("id") id: Int)
+
     @GET("api/renovaciones/pendientes")
     suspend fun renovacionesPendientes(): List<RenovacionDto>
 
