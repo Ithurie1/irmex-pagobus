@@ -1,5 +1,6 @@
 package com.irmex.admin.di
 
+import com.irmex.admin.data.repository.AccesoRepositoryImpl
 import com.irmex.admin.data.repository.AuthRepositoryImpl
 import com.irmex.admin.data.repository.DocumentoRepositoryImpl
 import com.irmex.admin.data.repository.PerfilRepositoryImpl
@@ -8,6 +9,7 @@ import com.irmex.admin.data.repository.ResumenRepositoryImpl
 import com.irmex.admin.data.repository.TarjetaRepositoryImpl
 import com.irmex.admin.data.repository.TicketRepositoryImpl
 import com.irmex.admin.data.repository.UsuarioRepositoryImpl
+import com.irmex.admin.domain.repository.AccesoRepository
 import com.irmex.admin.domain.repository.AuthRepository
 import com.irmex.admin.domain.repository.DocumentoRepository
 import com.irmex.admin.domain.repository.PerfilRepository
@@ -31,5 +33,6 @@ abstract class RepositoryModule {
     @Binds abstract fun usuarios(impl: UsuarioRepositoryImpl): UsuarioRepository
     @Binds abstract fun documentos(impl: DocumentoRepositoryImpl): DocumentoRepository
     @Binds abstract fun perfil(impl: PerfilRepositoryImpl): PerfilRepository
+    @Binds abstract fun accesos(impl: AccesoRepositoryImpl): AccesoRepository
     @Binds abstract fun resumen(impl: ResumenRepositoryImpl): ResumenRepository
 }

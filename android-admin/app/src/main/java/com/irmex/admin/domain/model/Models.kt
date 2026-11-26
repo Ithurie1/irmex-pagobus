@@ -65,3 +65,9 @@ data class Usuario(
 
 /** Documento de un estudiante listo para mostrarse: una imagen por página (PNG/JPEG en bytes). */
 class Documento(val nombre: String, val paginas: List<ByteArray>)
+
+data class AccesoLog(
+    val correo: String,
+    val rol: String,
+    val fecha: String,
+)

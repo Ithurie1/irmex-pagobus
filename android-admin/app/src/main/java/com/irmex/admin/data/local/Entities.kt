@@ -57,3 +57,22 @@ data class PerfilEntity(
     val cp: String,
     val fechaRegistro: String,
 )
+
+@Entity(tableName = "resumen")
+data class ResumenEntity(
+    @PrimaryKey val id: Int = 1,
+    val totalEstudiantes: Int,
+    val tarjetasActivas: Int,
+    val tarjetasInactivas: Int,
+    val totalIngresos: Double,
+    val totalGastos: Double,
+)
+
+@Entity(tableName = "accesos")
+data class AccesoEntity(
+    /** Posición en la lista del servidor (más reciente primero). */
+    @PrimaryKey val orden: Int,
+    val correo: String,
+    val rol: String,
+    val fecha: String,
+)

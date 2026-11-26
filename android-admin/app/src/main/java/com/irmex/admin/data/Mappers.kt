@@ -1,16 +1,20 @@
 package com.irmex.admin.data
 
+import com.irmex.admin.data.local.AccesoEntity
 import com.irmex.admin.data.local.PerfilEntity
 import com.irmex.admin.data.local.RenovacionEntity
+import com.irmex.admin.data.local.ResumenEntity
 import com.irmex.admin.data.local.TarjetaEntity
 import com.irmex.admin.data.local.TicketEntity
 import com.irmex.admin.data.local.UsuarioEntity
+import com.irmex.admin.data.remote.AccesoDto
 import com.irmex.admin.data.remote.PerfilDto
 import com.irmex.admin.data.remote.RenovacionDto
 import com.irmex.admin.data.remote.ResumenDto
 import com.irmex.admin.data.remote.TarjetaDto
 import com.irmex.admin.data.remote.TicketDto
 import com.irmex.admin.data.remote.UsuarioDto
+import com.irmex.admin.domain.model.AccesoLog
 import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Renovacion
 import com.irmex.admin.domain.model.ResumenGeneral
@@ -84,3 +88,17 @@ fun PerfilDto.toEntity(correoSesion: String) = PerfilEntity(
 )
 
 fun PerfilEntity.toDomain() = Perfil(nombre, correo, curp, calle, numero, colonia, cp, fechaRegistro)
+
+fun ResumenDto.toEntity() = ResumenEntity(
+    totalEstudiantes = totalEstudiantes ?: 0,
+    tarjetasActivas = tarjetasActivas ?: 0,
+    tarjetasInactivas = tarjetasInactivas ?: 0,
+    totalIngresos = totalIngresos ?: 0.0,
+    totalGastos = totalGastos ?: 0.0,
+)
+
+fun ResumenEntity.toDomain() = ResumenGeneral(totalEstudiantes, tarjetasActivas, tarjetasInactivas, totalIngresos, totalGastos)
+
+fun AccesoDto.toEntity(orden: Int) = AccesoEntity(orden, correo.orEmpty(), rol ?: "estudiante", fecha.orEmpty())
+
+fun AccesoEntity.toDomain() = AccesoLog(correo, rol, fecha)

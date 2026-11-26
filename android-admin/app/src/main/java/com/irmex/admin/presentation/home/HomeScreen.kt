@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.irmex.admin.domain.model.Roles
 import com.irmex.admin.presentation.perfil.PerfilScreen
 import com.irmex.admin.presentation.renovaciones.RenovacionesScreen
+import com.irmex.admin.presentation.reportes.ReportesScreen
 import com.irmex.admin.presentation.tarjetas.TarjetasScreen
 import com.irmex.admin.presentation.tickets.TicketsScreen
 import com.irmex.admin.presentation.usuarios.EstatusUsuariosScreen
@@ -52,7 +53,7 @@ fun HomeScreen(nombre: String, rol: String, onCerrarSesion: () -> Unit) {
                         Modulo.TARJETAS -> TarjetasScreen(snackbar)
                         Modulo.ESTATUS_USUARIOS -> EstatusUsuariosScreen(snackbar)
                         Modulo.PRIVILEGIOS -> PrivilegiosScreen(snackbar)
-                        Modulo.REPORTES -> ResumenScreen(snackbar)
+                        Modulo.REPORTES -> ReportesScreen(snackbar)
                         Modulo.DOCUMENTOS -> RenovacionesScreen(snackbar)
                         Modulo.SOPORTE -> TicketsScreen(snackbar)
                         Modulo.PERFIL -> PerfilScreen(snackbar)

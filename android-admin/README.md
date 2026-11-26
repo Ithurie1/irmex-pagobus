@@ -25,6 +25,10 @@ La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refre
 la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, usuarios, tickets y
 renovaciones pendientes.
 
+## Reportes de uso
+Tarjetas de métricas, gráfica de barras de ingresos contra gastos (dibujada con Compose, sin librerías) y la auditoría de los
+últimos 50 accesos. El resumen y los accesos se guardan en Room, así que se ven también sin internet.
+
 ## Verificar documentos
 Antes de aprobar o rechazar una renovación se puede abrir el documento del estudiante en un visor a pantalla completa:
 las imágenes (JPG/PNG) se muestran directo y los PDF se convierten a imágenes con `PdfRenderer` (hasta 5 páginas).

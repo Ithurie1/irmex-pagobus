@@ -72,6 +72,9 @@ interface IrmexApi {
     @PUT("api/perfil/{correo}")
     suspend fun actualizarPerfil(@Path("correo") correo: String, @Body body: PerfilUpdateRequest)
 
+    @GET("api/logs")
+    suspend fun accesos(): List<AccesoDto>
+
     @GET("api/reportes/general")
     suspend fun resumenGeneral(): ResumenDto
 }
