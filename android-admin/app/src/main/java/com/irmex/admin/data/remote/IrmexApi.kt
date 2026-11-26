@@ -1,5 +1,6 @@
 package com.irmex.admin.data.remote
 
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -61,6 +62,9 @@ interface IrmexApi {
 
     @PUT("api/usuarios/{id}/rol")
     suspend fun cambiarRol(@Path("id") id: Int, @Body body: CambioRolRequest)
+
+    @GET("api/documentos-seguros/{nombre}")
+    suspend fun documento(@Path("nombre") nombre: String): ResponseBody
 
     @GET("api/perfil/{correo}")
     suspend fun perfil(@Path("correo") correo: String): PerfilDto

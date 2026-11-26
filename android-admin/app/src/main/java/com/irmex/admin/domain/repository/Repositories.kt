@@ -1,5 +1,6 @@
 package com.irmex.admin.domain.repository
 
+import com.irmex.admin.domain.model.Documento
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Renovacion
@@ -54,4 +55,8 @@ interface PerfilRepository {
     fun observar(): Flow<Perfil?>
     suspend fun refrescar(): Outcome<Unit>
     suspend fun guardar(perfil: Perfil): Outcome<Unit>
+}
+
+interface DocumentoRepository {
+    suspend fun obtener(nombreArchivo: String): Outcome<Documento>
 }

@@ -25,6 +25,10 @@ La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refre
 la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, usuarios, tickets y
 renovaciones pendientes.
 
+## Verificar documentos
+Antes de aprobar o rechazar una renovación se puede abrir el documento del estudiante en un visor a pantalla completa:
+las imágenes (JPG/PNG) se muestran directo y los PDF se convierten a imágenes con `PdfRenderer` (hasta 5 páginas).
+
 ## Seguridad de la sesión
 El token JWT se guarda en DataStore **cifrado con AES-256-GCM**; la llave está en Android Keystore y no sale del dispositivo
 (`data/local/TokenCipher.kt`). Si el dato no se puede descifrar, la app lo trata como sesión cerrada y pide iniciar sesión.
