@@ -105,3 +105,45 @@ class CambiarRolUseCase @Inject constructor(private val repo: UsuarioRepository)
         return repo.cambiarRol(id, nuevoRol, nip)
     }
 }
+
+// ---------------- Gestión de tarjetas ----------------
+
+class CrearTarjetaUseCase @Inject constructor(private val repo: TarjetaRepository) {
+    suspend operator fun invoke(numero: String, saldo: Int, estatus: String, usuarioId: Int?): Outcome<Unit> {
+        if (numero.length != 16 || !numero.all { it.isDigit() }) {
+            return Outcome.Failure("El número de tarjeta debe tener exactamente 16 dígitos.")
+        }
+        if (saldo < 0) return Outcome.Failure("El saldo inicial no puede ser negativo.")
+        return repo.crear(numero, saldo, estatus, usuarioId)
+    }
+}
+
+class AjustarVigenciaUseCase @Inject constructor(private val repo: TarjetaRepository) {
+    suspend operator fun invoke(id: Int, dias: Int): Outcome<Unit> {
+        if (dias == 0) return Outcome.Failure("Escribe cuántos días sumar (o restar con un número negativo).")
+        return repo.ajustarVigencia(id, dias)
+    }
+}
+
+/** Recarga de emergencia: acción sensible, el servidor exige el NIP maestro. */
+class RecargaManualUseCase @Inject constructor(private val repo: TarjetaRepository) {
+    suspend operator fun invoke(id: Int, monto: Double, nip: String): Outcome<Unit> {
+        if (monto <= 0.0) return Outcome.Failure("El monto debe ser mayor a cero.")
+        if (nip.isEmpty()) return Outcome.Failure("Escribe el NIP maestro para autorizar.")
+        return repo.recargaManual(id, monto, nip)
+    }
+}
+
+class AlternarEstatusTarjetaUseCase @Inject constructor(private val repo: TarjetaRepository) {
+    suspend operator fun invoke(id: Int, nip: String): Outcome<Unit> {
+        if (nip.isEmpty()) return Outcome.Failure("Escribe el NIP maestro para autorizar.")
+        return repo.alternarEstatus(id, nip)
+    }
+}
+
+class BorrarTarjetaUseCase @Inject constructor(private val repo: TarjetaRepository) {
+    suspend operator fun invoke(id: Int, nip: String): Outcome<Unit> {
+        if (nip.isEmpty()) return Outcome.Failure("Escribe el NIP maestro para autorizar.")
+        return repo.borrar(id, nip)
+    }
+}

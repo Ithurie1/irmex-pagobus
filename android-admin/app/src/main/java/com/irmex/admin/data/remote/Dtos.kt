@@ -63,3 +63,19 @@ data class CambioRolRequest(
     @SerializedName("nuevo_rol") val nuevoRol: String,
     @SerializedName("nip_proporcionado") val nip: String,
 )
+
+data class TarjetaCrearRequest(
+    @SerializedName("numero_tarjeta") val numero: String,
+    val saldo: Int,
+    val estatus: String,
+    @SerializedName("usuario_id") val usuarioId: Int?,
+)
+
+data class VigenciaRequest(val dias: Int)
+
+data class RecargaManualRequest(
+    val monto: Double,
+    @SerializedName("pin_seguridad") val nip: String,
+)
+
+data class AccionSeguraRequest(@SerializedName("pin_seguridad") val nip: String)

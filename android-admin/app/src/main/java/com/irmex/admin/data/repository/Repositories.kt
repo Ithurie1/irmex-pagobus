@@ -6,11 +6,15 @@ import com.irmex.admin.data.local.SessionDataStore
 import com.irmex.admin.data.local.TarjetaDao
 import com.irmex.admin.data.local.TicketDao
 import com.irmex.admin.data.local.UsuarioDao
+import com.irmex.admin.data.remote.AccionSeguraRequest
 import com.irmex.admin.data.remote.CambioRolRequest
 import com.irmex.admin.data.remote.EstatusRenovacionRequest
 import com.irmex.admin.data.remote.IrmexApi
 import com.irmex.admin.data.remote.LoginRequest
+import com.irmex.admin.data.remote.RecargaManualRequest
 import com.irmex.admin.data.remote.RespuestaTicketRequest
+import com.irmex.admin.data.remote.TarjetaCrearRequest
+import com.irmex.admin.data.remote.VigenciaRequest
 import com.irmex.admin.data.remote.safeCall
 import com.irmex.admin.data.toDomain
 import com.irmex.admin.data.toEntity
@@ -73,6 +77,27 @@ class TarjetaRepositoryImpl @Inject constructor(
 
     override suspend fun refrescar(): Outcome<Unit> = safeCall {
         dao.reemplazar(api.tarjetas().map { it.toEntity() })
+    }
+
+    override suspend fun crear(numero: String, saldo: Int, estatus: String, usuarioId: Int?) =
+        conRefresco { api.crearTarjeta(TarjetaCrearRequest(numero, saldo, estatus, usuarioId)) }
+
+    override suspend fun ajustarVigencia(id: Int, dias: Int) =
+        conRefresco { api.ajustarVigencia(id, VigenciaRequest(dias)) }
+
+    override suspend fun recargaManual(id: Int, monto: Double, nip: String) =
+        conRefresco { api.recargaManual(id, RecargaManualRequest(monto, nip)) }
+
+    override suspend fun alternarEstatus(id: Int, nip: String) =
+        conRefresco { api.alternarEstatusTarjeta(id, AccionSeguraRequest(nip)) }
+
+    override suspend fun borrar(id: Int, nip: String) =
+        conRefresco { api.borrarTarjeta(id, AccionSeguraRequest(nip)) }
+
+    /** Ejecuta la acción en el servidor y, si salió bien, actualiza la caché local. */
+    private suspend inline fun conRefresco(crossinline accion: suspend () -> Unit): Outcome<Unit> {
+        val resultado = safeCall { accion() }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
     }
 }
 

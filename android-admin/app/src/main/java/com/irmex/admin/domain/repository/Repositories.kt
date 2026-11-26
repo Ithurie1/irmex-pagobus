@@ -18,6 +18,11 @@ interface AuthRepository {
 interface TarjetaRepository {
     fun observar(): Flow<List<Tarjeta>>
     suspend fun refrescar(): Outcome<Unit>
+    suspend fun crear(numero: String, saldo: Int, estatus: String, usuarioId: Int?): Outcome<Unit>
+    suspend fun ajustarVigencia(id: Int, dias: Int): Outcome<Unit>
+    suspend fun recargaManual(id: Int, monto: Double, nip: String): Outcome<Unit>
+    suspend fun alternarEstatus(id: Int, nip: String): Outcome<Unit>
+    suspend fun borrar(id: Int, nip: String): Outcome<Unit>
 }
 
 interface TicketRepository {
