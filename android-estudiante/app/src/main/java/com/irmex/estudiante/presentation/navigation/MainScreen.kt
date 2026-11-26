@@ -81,6 +81,7 @@ fun MainScreen(onCerrarSesion: () -> Unit) {
                     onHistorial = { nav.irAPestana(Destino.HISTORIAL.ruta) },
                     onAyuda = { nav.irAPestana(Destino.REPORTES.ruta) },
                     onRenovar = { nav.navigate(RUTA_RENOVAR) },
+                    onCerrarSesion = onCerrarSesion,
                 )
             }
             composable(Destino.RECARGAR.ruta) { RecargarScreen(snackbar) }

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.irmex.estudiante.domain.model.Perfil
+import com.irmex.estudiante.presentation.common.DialogoCerrarSesion
 import com.irmex.estudiante.presentation.common.MensajesEffect
 
 /** Módulo "Mi Perfil": datos personales y domicilio del administrador en sesión. */
@@ -36,16 +37,27 @@ fun PerfilScreen(snackbar: SnackbarHostState, onCerrarSesion: () -> Unit, viewMo
     val cargando by viewModel.cargando.collectAsStateWithLifecycle()
     MensajesEffect(viewModel.mensajes, snackbar)
 
+    var confirmarSalida by remember { mutableStateOf(false) }
+    if (confirmarSalida) {
+        DialogoCerrarSesion(
+            onConfirmar = { confirmarSalida = false; onCerrarSesion() },
+            onCancelar = { confirmarSalida = false },
+        )
+    }
+
     val datos = perfil
     if (datos == null) {
-        Column(Modifier.fillMaxSize().padding(24.dp)) {
+        Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(
                 if (cargando) "Cargando perfil…" else "No se pudo cargar tu perfil. Revisa tu conexión y vuelve a entrar al módulo.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            OutlinedButton(onClick = { confirmarSalida = true }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                Text("Cerrar sesión")
+            }
         }
     } else {
-        FormularioPerfil(datos, cargando, viewModel::guardar, onCerrarSesion)
+        FormularioPerfil(datos, cargando, viewModel::guardar) { confirmarSalida = true }
     }
 }
 

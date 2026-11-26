@@ -42,6 +42,13 @@ class SessionDataStore @Inject constructor(
         }
     }
 
+    /** Actualiza el nombre guardado en la sesión (por ejemplo, tras editar el perfil) para que el saludo cambie al instante. */
+    suspend fun actualizarNombre(nombre: String) {
+        context.dataStore.edit { prefs ->
+            if (prefs[tokenKey] != null && nombre.isNotBlank()) prefs[nombreKey] = nombre
+        }
+    }
+
     suspend fun limpiar() {
         context.dataStore.edit { it.clear() }
     }

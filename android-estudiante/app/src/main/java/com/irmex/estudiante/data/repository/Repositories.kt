@@ -176,7 +176,12 @@ class PerfilRepositoryImpl @Inject constructor(
     override suspend fun refrescar(): Outcome<Unit> {
         val correo = sessionStore.session.first()?.correo.orEmpty()
         if (correo.isEmpty()) return Outcome.Failure("Vuelve a iniciar sesión para ver tu perfil.")
-        return safeCall { dao.guardar(api.perfil(correo).toEntity(correo)) }
+        return safeCall {
+            val perfil = api.perfil(correo)
+            dao.guardar(perfil.toEntity(correo))
+            // Mantiene el nombre de la sesión al día: el saludo de la pantalla principal lo lee de ahí.
+            perfil.nombre?.let { sessionStore.actualizarNombre(it) }
+        }
     }
 
     override suspend fun guardar(perfil: Perfil): Outcome<Unit> {
