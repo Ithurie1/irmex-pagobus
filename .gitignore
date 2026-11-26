@@ -6,3 +6,8 @@ android-admin/app/build/
 android-admin/local.properties
 android-admin/.idea/
 *.iml
+android-estudiante/.gradle/
+android-estudiante/build/
+android-estudiante/app/build/
+android-estudiante/local.properties
+android-estudiante/.idea/
