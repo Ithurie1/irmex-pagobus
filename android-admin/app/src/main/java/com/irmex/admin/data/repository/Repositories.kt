@@ -135,6 +135,16 @@ class TicketRepositoryImpl @Inject constructor(
         val resultado = safeCall { api.accionesTicket(id = id, importante = importante) }
         return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
     }
+
+    override suspend fun marcarLeido(id: Int, leido: Boolean): Outcome<Unit> {
+        val resultado = safeCall { api.accionesTicket(id = id, revisado = leido) }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
+    }
+
+    override suspend fun eliminar(id: Int): Outcome<Unit> {
+        val resultado = safeCall { api.eliminarTicket(id) }
+        return if (resultado is Outcome.Success) refrescar() else resultado.asUnit()
+    }
 }
 
 @Singleton

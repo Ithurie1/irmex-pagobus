@@ -25,6 +25,10 @@ La UI siempre observa Room (`Flow`). Al abrir una pantalla o deslizar para refre
 la caché; si no hay internet se muestra la última información y un Snackbar. Se cachean: tarjetas, usuarios, tickets y
 renovaciones pendientes.
 
+## Centro de soporte
+Buzón con tres carpetas (Bandeja, Destacados y Leídos) como en la web. Cada ticket se puede marcar como leído, destacar,
+responder o eliminar (con confirmación). La bandeja muestra cuántos mensajes hay sin leer. Todo funciona sobre la caché de Room.
+
 ## Reportes de uso
 Tarjetas de métricas, gráfica de barras de ingresos contra gastos (dibujada con Compose, sin librerías) y la auditoría de los
 últimos 50 accesos. El resumen y los accesos se guardan en Room, así que se ven también sin internet.

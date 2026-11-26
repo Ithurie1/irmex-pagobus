@@ -75,6 +75,14 @@ class MarcarTicketImportanteUseCase @Inject constructor(private val repo: Ticket
     suspend operator fun invoke(id: Int, importante: Boolean) = repo.marcarImportante(id, importante)
 }
 
+class MarcarTicketLeidoUseCase @Inject constructor(private val repo: TicketRepository) {
+    suspend operator fun invoke(id: Int, leido: Boolean) = repo.marcarLeido(id, leido)
+}
+
+class EliminarTicketUseCase @Inject constructor(private val repo: TicketRepository) {
+    suspend operator fun invoke(id: Int) = repo.eliminar(id)
+}
+
 class ObservarRenovacionesUseCase @Inject constructor(private val repo: RenovacionRepository) {
     operator fun invoke() = repo.observar()
 }
