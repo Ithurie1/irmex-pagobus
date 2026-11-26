@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AddCard
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Forum
@@ -45,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.irmex.estudiante.domain.model.Tarjeta
+import com.irmex.estudiante.presentation.common.DialogoCerrarSesion
 import com.irmex.estudiante.presentation.common.MensajesEffect
 import com.irmex.estudiante.presentation.common.agruparTarjeta
 import com.irmex.estudiante.presentation.common.formatoMoneda
@@ -61,6 +63,7 @@ fun InicioScreen(
     onHistorial: () -> Unit,
     onAyuda: () -> Unit,
     onRenovar: () -> Unit,
+    onCerrarSesion: () -> Unit,
     viewModel: InicioViewModel = hiltViewModel(),
 ) {
     val tarjeta by viewModel.tarjeta.collectAsStateWithLifecycle()
@@ -68,18 +71,31 @@ fun InicioScreen(
     val cargando by viewModel.cargando.collectAsStateWithLifecycle()
     MensajesEffect(viewModel.mensajes, snackbar)
 
+    var confirmarSalida by rememberSaveable { mutableStateOf(false) }
+    if (confirmarSalida) {
+        DialogoCerrarSesion(
+            onConfirmar = { confirmarSalida = false; onCerrarSesion() },
+            onCancelar = { confirmarSalida = false },
+        )
+    }
+
     PullToRefreshBox(isRefreshing = cargando, onRefresh = viewModel::refrescar, modifier = Modifier.fillMaxSize()) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Column {
-                Text(
-                    if (nombre.isBlank()) "Hola" else "Hola, $nombre",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text("Este es el resumen de tu tarjeta IrMex.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (nombre.isBlank()) "Hola" else "Hola, $nombre",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text("Este es el resumen de tu tarjeta IrMex.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = { confirmarSalida = true }) {
+                    Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar sesión")
+                }
             }
 
             val actual = tarjeta
