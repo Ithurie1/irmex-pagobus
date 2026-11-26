@@ -90,3 +90,30 @@ abstract class PerfilDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     abstract suspend fun guardar(perfil: PerfilEntity)
 }
+
+@Dao
+abstract class ResumenDao {
+    @Query("SELECT * FROM resumen WHERE id = 1")
+    abstract fun observar(): Flow<ResumenEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun guardar(resumen: ResumenEntity)
+}
+
+@Dao
+abstract class AccesoDao {
+    @Query("SELECT * FROM accesos ORDER BY orden")
+    abstract fun observar(): Flow<List<AccesoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    abstract suspend fun insertar(items: List<AccesoEntity>)
+
+    @Query("DELETE FROM accesos")
+    abstract suspend fun borrarTodo()
+
+    @Transaction
+    open suspend fun reemplazar(items: List<AccesoEntity>) {
+        borrarTodo()
+        insertar(items)
+    }
+}

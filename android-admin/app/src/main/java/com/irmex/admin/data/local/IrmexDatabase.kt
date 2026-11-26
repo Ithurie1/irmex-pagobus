@@ -10,8 +10,10 @@ import androidx.room.RoomDatabase
         RenovacionEntity::class,
         UsuarioEntity::class,
         PerfilEntity::class,
+        ResumenEntity::class,
+        AccesoEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class IrmexDatabase : RoomDatabase() {
@@ -20,4 +22,6 @@ abstract class IrmexDatabase : RoomDatabase() {
     abstract fun renovacionDao(): RenovacionDao
     abstract fun usuarioDao(): UsuarioDao
     abstract fun perfilDao(): PerfilDao
+    abstract fun resumenDao(): ResumenDao
+    abstract fun accesoDao(): AccesoDao
 }

@@ -5,6 +5,7 @@ import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Roles
 import com.irmex.admin.domain.model.Session
+import com.irmex.admin.domain.repository.AccesoRepository
 import com.irmex.admin.domain.repository.AuthRepository
 import com.irmex.admin.domain.repository.DocumentoRepository
 import com.irmex.admin.domain.repository.PerfilRepository
@@ -86,8 +87,20 @@ class ResolverRenovacionUseCase @Inject constructor(private val repo: Renovacion
     suspend operator fun invoke(id: Int, aprobar: Boolean) = repo.resolver(id, aprobar)
 }
 
-class ObtenerResumenUseCase @Inject constructor(private val repo: ResumenRepository) {
-    suspend operator fun invoke() = repo.obtener()
+class ObservarResumenUseCase @Inject constructor(private val repo: ResumenRepository) {
+    operator fun invoke() = repo.observar()
+}
+
+class RefrescarResumenUseCase @Inject constructor(private val repo: ResumenRepository) {
+    suspend operator fun invoke() = repo.refrescar()
+}
+
+class ObservarAccesosUseCase @Inject constructor(private val repo: AccesoRepository) {
+    operator fun invoke() = repo.observar()
+}
+
+class RefrescarAccesosUseCase @Inject constructor(private val repo: AccesoRepository) {
+    suspend operator fun invoke() = repo.refrescar()
 }
 
 class ObservarUsuariosUseCase @Inject constructor(private val repo: UsuarioRepository) {

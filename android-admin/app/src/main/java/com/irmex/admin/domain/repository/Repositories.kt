@@ -1,5 +1,6 @@
 package com.irmex.admin.domain.repository
 
+import com.irmex.admin.domain.model.AccesoLog
 import com.irmex.admin.domain.model.Documento
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Perfil
@@ -41,7 +42,13 @@ interface RenovacionRepository {
 }
 
 interface ResumenRepository {
-    suspend fun obtener(): Outcome<ResumenGeneral>
+    fun observar(): Flow<ResumenGeneral?>
+    suspend fun refrescar(): Outcome<Unit>
+}
+
+interface AccesoRepository {
+    fun observar(): Flow<List<AccesoLog>>
+    suspend fun refrescar(): Outcome<Unit>
 }
 
 interface UsuarioRepository {

@@ -1,8 +1,10 @@
 package com.irmex.admin.data.repository
 
+import com.irmex.admin.data.local.AccesoDao
 import com.irmex.admin.data.local.IrmexDatabase
 import com.irmex.admin.data.local.PerfilDao
 import com.irmex.admin.data.local.RenovacionDao
+import com.irmex.admin.data.local.ResumenDao
 import com.irmex.admin.data.local.SessionDataStore
 import com.irmex.admin.data.local.TarjetaDao
 import com.irmex.admin.data.local.TicketDao
@@ -23,6 +25,7 @@ import com.irmex.admin.data.toEntity
 import com.irmex.admin.domain.model.Outcome
 import com.irmex.admin.domain.model.Perfil
 import com.irmex.admin.domain.model.Session
+import com.irmex.admin.domain.repository.AccesoRepository
 import com.irmex.admin.domain.repository.AuthRepository
 import com.irmex.admin.domain.repository.PerfilRepository
 import com.irmex.admin.domain.repository.RenovacionRepository
@@ -211,8 +214,27 @@ class PerfilRepositoryImpl @Inject constructor(
 @Singleton
 class ResumenRepositoryImpl @Inject constructor(
     private val api: IrmexApi,
+    private val dao: ResumenDao,
 ) : ResumenRepository {
-    override suspend fun obtener() = safeCall { api.resumenGeneral().toDomain() }
+
+    override fun observar() = dao.observar().map { it?.toDomain() }
+
+    override suspend fun refrescar(): Outcome<Unit> = safeCall {
+        dao.guardar(api.resumenGeneral().toEntity())
+    }
+}
+
+@Singleton
+class AccesoRepositoryImpl @Inject constructor(
+    private val api: IrmexApi,
+    private val dao: AccesoDao,
+) : AccesoRepository {
+
+    override fun observar() = dao.observar().map { lista -> lista.map { it.toDomain() } }
+
+    override suspend fun refrescar(): Outcome<Unit> = safeCall {
+        dao.reemplazar(api.accesos().mapIndexed { indice, dto -> dto.toEntity(indice) })
+    }
 }
 
 private fun <T> Outcome<T>.asUnit(): Outcome<Unit> = when (this) {

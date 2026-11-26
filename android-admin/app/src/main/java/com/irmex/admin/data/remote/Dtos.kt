@@ -101,3 +101,9 @@ data class PerfilUpdateRequest(
     val cp: String,
     @SerializedName("foto_perfil") val fotoPerfil: String? = null,
 )
+
+data class AccesoDto(
+    val correo: String?,
+    val rol: String?,
+    @SerializedName("fecha_hora") val fecha: String?,
+)
